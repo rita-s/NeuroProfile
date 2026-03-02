@@ -109,8 +109,20 @@ function getDiagnosis(sc) {
   if (au >= 60) return { title: "Autistic Profile", sub: "Deep pattern processor", type: "autism", dom: "autism", desc: "Pattern recognition, focused depth, and systematic thinking are your hallmarks. Direct communication, sensory awareness, and clarity preference create extraordinary capability in the right environment." };
   if (ov >= 60) return { title: "High-Overlap Profile", sub: "Convergent neurodivergent traits", type: "overlap", dom: "overlap", desc: "Emotional intensity, divergent thinking, curiosity, and non-linear learning define you. Highly creative, deeply feeling, naturally drawn to complexity." };
   const mod = CATS.filter(c => sc[c] >= 40);
-  if (mod.length >= 2) return { title: "Emerging Profile", sub: "Distributed traits", type: "emerging", dom: CATS.reduce((a, b) => sc[a] >= sc[b] ? a : b), desc: "Moderate traits across categories — they may express situationally or more subtly. A specialist assessment could help map your unique pattern." };
-  return { title: "Exploring Your Profile", sub: "Your cognitive landscape", type: "exploring", dom: CATS.reduce((a, b) => sc[a] >= sc[b] ? a : b), desc: "More typical presentation, or traits that express in ways this tool may not fully capture. If questions resonated even at lower scores, that experience is valid." };
+  const highest = CATS.reduce((a, b) => sc[a] >= sc[b] ? a : b);
+  const allLow = CATS.every(c => sc[c] < 30);
+  const allZero = CATS.every(c => sc[c] === 0);
+
+  if (mod.length >= 2) return { title: "Emerging Profile", sub: "Distributed traits", type: "emerging", dom: highest, desc: "Moderate traits across categories — they may express situationally or more subtly. A specialist assessment could help map your unique pattern." };
+
+  // One category 40+ but below 60
+  if (mod.length === 1) return { title: "Mild " + mod[0].charAt(0).toUpperCase() + mod[0].slice(1) + " Traits", sub: "Subtle neurodivergent expression", type: "mild", dom: mod[0], desc: "You show moderate traits in one domain while others remain low. This suggests a subtle or situational expression of neurodivergent characteristics — present enough to notice, but not dominant. Understanding where these traits emerge can help you build around them." };
+
+  if (allZero) return { title: "No Data Recorded", sub: "Assessment incomplete", type: "nodata", dom: "giftedness", desc: "It looks like no answers were recorded. Please retake the assessment and rate each question on the 0–10 scale to generate your profile." };
+
+  if (allLow) return { title: "Neurotypical Profile", sub: "Conventional cognitive architecture", type: "neurotypical", dom: highest, desc: "Your scores across all domains are low, suggesting a predominantly neurotypical cognitive style. This is not a deficit — it means your brain processes information, regulates attention, and handles social and sensory input in a way that aligns with the statistical majority. Your strengths lie in adaptability, consistency, and conventional processing." };
+
+  return { title: "Low-Trait Profile", sub: "Minimal neurodivergent expression", type: "lowtrait", dom: highest, desc: "Your scores are low across most categories with slight presence in some areas. This could mean you are genuinely neurotypical, that your traits express in ways this tool doesn't capture, or that context matters — you may experience these traits only in specific environments or under stress." };
 }
 
 // ── TENS ───────────────────────────────────────────────────────────────
@@ -162,6 +174,20 @@ function getStrengthsChallenges(sc) {
     if (v("overlap",3) >= 7) C.push({ t: "Stimulation Hunger — Simple tasks induce boredom paralysis", c: "overlap" });
     if (v("overlap",8) >= 7) C.push({ t: "Asynchronous Development — Uneven strengths create frustration", c: "overlap" });
   }
+  // Neurotypical / low-profile strengths
+  if (S.length === 0 && C.length === 0) {
+    const avg = (sc.autism + sc.adhd + sc.giftedness + sc.overlap) / 4;
+    if (avg < 30) {
+      S.push({ t: "Adaptability — You can adjust to different environments without sensory or cognitive friction", c: "overlap" });
+      S.push({ t: "Steady Focus — Attention is distributed evenly rather than interest-dependent", c: "adhd" });
+      S.push({ t: "Social Fluency — Non-verbal communication and social cues come naturally", c: "autism" });
+      S.push({ t: "Emotional Regulation — You process emotions without extreme intensity", c: "overlap" });
+      S.push({ t: "Consistent Execution — You can follow through on plans without external scaffolding", c: "giftedness" });
+      C.push({ t: "Potential Blind Spots — You may underestimate how differently neurodivergent people process", c: "overlap" });
+      C.push({ t: "Routine Risk — Conventional processing can lead to autopilot if not challenged", c: "giftedness" });
+    }
+  }
+
   return { strengths: S, challenges: C };
 }
 
@@ -176,6 +202,11 @@ function getFormula(diag) {
     adhd:     { f: "Novelty × Crisis Speed × Interest Focus ÷ (Time Blindness + Memory Gaps)", m: "External scaffolding. Your brain runs on engagement, not discipline." },
     autism:   { f: "Pattern Recognition × Systematic Depth × Focus ÷ (Sensory Overload + Communication Cost)", m: "Environments designed for your processing style — predictable, low-sensory, clear." },
     overlap:  { f: "Emotional Depth × Curiosity × Creativity ÷ (Overstimulation + Boredom)", m: "Creative autonomy with emotional space. Protect energy, feed curiosity." },
+    neurotypical: { f: "Consistency × Adaptability × Social Fluency ÷ (Autopilot Risk + Comfort Zone)", m: "Your brain doesn't fight you — the risk is coasting. Use intentional challenge, stretch goals, and novel experiences to keep growing." },
+    lowtrait: { f: "Stability × Flexibility × Conventional Processing ÷ (Understimulation Risk)", m: "Your baseline is reliable. Invest in deliberate growth edges — places where you intentionally push beyond comfortable." },
+    mild:     { f: "Baseline Stability × (Mild Trait Awareness) ÷ Context Sensitivity", m: "Your subtle traits emerge in specific contexts. Learn which situations amplify them and design accordingly." },
+    nodata:   { f: "— No data —", m: "Complete the assessment to generate your formula." },
+    emerging: { f: "Distributed Traits × Context Variability ÷ Clarity", m: "Your profile is mosaic-like. Map which traits show up where, and build systems for the contexts that challenge you most." },
   };
   return map[diag.type] || { f: "Your Traits × Your Context ÷ Environmental Fit", m: "Understand which traits are strengths and which need support, then design accordingly." };
 }
@@ -199,7 +230,20 @@ function getRecommendations(sc, diag) {
   if (sc.overlap >= 50) R.push({ t: "Honor Your Learning Style", d: "Non-linear learning is not broken learning. Your brain builds webs, not chains. Trust the process." });
   if (diag.type === "3e" || diag.type.startsWith("2e")) R.push({ t: "Complexity Is Your USP", d: "Your need for complexity is not a flaw — it's your Unique Selling Proposition. Find contexts that need what you naturally produce." });
   if (sc.overlap >= 60 || (sc.giftedness >= 50 && sc.adhd >= 50)) R.push({ t: "Burnout Prevention Protocol", d: "Build recovery into your schedule before you need it. Monitor your emotional tank, not just your task list." });
-  if (R.length === 0) R.push({ t: "Explore Further", d: "Consider whether specific environments or support systems might help you work more comfortably with your cognitive style." });
+  if (R.length === 0) {
+    // Neurotypical / low-trait specific recommendations
+    if (diag.type === "neurotypical" || diag.type === "lowtrait") {
+      R.push({ t: "Leverage Your Consistency", d: "Your brain doesn't sabotage your plans. This is a genuine superpower. Use it by setting clear, ambitious goals — your ability to follow through consistently is rare and valuable." });
+      R.push({ t: "Seek Deliberate Challenge", d: "Without neurodivergent intensity pushing you toward complexity, you may need to intentionally create growth edges. Take on projects outside your comfort zone. Travel. Learn something radically different." });
+      R.push({ t: "Build Neurodiversity Literacy", d: "Understanding how neurodivergent people think will make you a better collaborator, leader, and partner. Many of your colleagues, friends, or family members may operate very differently than you." });
+      R.push({ t: "Watch for Autopilot", d: "Conventional processing can lead to coasting — doing things the way they've always been done. Build in regular reflection points to ask: Is this still the right path, or just the comfortable one?" });
+    } else if (diag.type === "mild") {
+      R.push({ t: "Map Your Context Triggers", d: "Your subtle traits likely emerge in specific situations — stress, boredom, overstimulation, or particular social contexts. Keep a journal of when you feel 'different' to understand your pattern." });
+      R.push({ t: "Don't Dismiss Subtle Experiences", d: "Mild traits are still real traits. You don't need a high score to benefit from understanding your cognitive style. Small accommodations can make a big difference." });
+    } else {
+      R.push({ t: "Explore Further", d: "Consider whether specific environments or support systems might help you work more comfortably with your cognitive style." });
+    }
+  }
   return R;
 }
 
@@ -213,7 +257,16 @@ function getDeepAnalysis(sc) {
   else if (sc.autism >= 50) A.push({ t: "The Deep Processor", d: "Where others skim surfaces, you analyze structure beneath. This depth creates both your greatest capability and vulnerability — brilliance requiring the right environmental accommodation." });
   if (sc.overlap >= 60) A.push({ t: "The Emotional Ocean", d: "Emotional intensity paired with early awareness suggests Dabrowski's overexcitability at a high level. Contemplative practices and emotional literacy aren't optional — they're essential infrastructure." });
   if (sc.adhd >= 50 && sc.autism >= 50) A.push({ t: "The Dual Tension", d: "ADHD craves novelty while autistic traits crave routine. Resolution: structured variety — reliable frameworks containing fresh content. Same morning routine, different creative projects." });
-  if (A.length === 0) A.push({ t: "Your Cognitive Landscape", d: "Balanced or subtle neurodivergent expression. Pay attention to which questions resonated most — those reveal key areas for self-understanding." });
+  if (A.length === 0) {
+    const avg = (sc.autism + sc.adhd + sc.giftedness + sc.overlap) / 4;
+    if (avg < 20) {
+      A.push({ t: "The Conventional Processor", d: "Your brain processes information, regulates attention, and handles social input in a way that aligns with the majority. This isn't absence of complexity — it's a different kind of processing. Where neurodivergent brains often trade consistency for intensity, yours trades intensity for reliability. You don't fight your own cognitive system, which means your energy goes toward execution rather than self-management." });
+      A.push({ t: "What Low Scores Actually Mean", d: "Low scores on this screener don't mean 'no traits' — they mean your cognitive style doesn't cluster around these specific neurodivergent patterns. You may still have significant strengths, deep interests, and emotional complexity. They just don't express through the autism/ADHD/giftedness framework. Your architecture is different, not lesser." });
+      A.push({ t: "The Consistency Advantage", d: "Neurotypical processing often gets overlooked in neurodiversity conversations, but it carries genuine advantages: predictable energy levels, stable working memory, reliable social processing, and the ability to execute multi-step plans without external scaffolding. These are assets that many neurodivergent people spend enormous energy trying to simulate." });
+    } else {
+      A.push({ t: "Your Cognitive Landscape", d: "Balanced or subtle neurodivergent expression. Pay attention to which questions resonated most — those reveal key areas for self-understanding. Even modest scores can indicate meaningful cognitive patterns when they cluster in specific areas." });
+    }
+  }
   return A;
 }
 
