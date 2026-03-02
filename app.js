@@ -1,754 +1,438 @@
 /* ── NEUROPROFILE — app.js ─────────────────────────────────────────── */
-
-const CATS = ["autism", "adhd", "giftedness", "overlap"];
-
-const CAT_COLORS = {
-  autism:     { main: "#E67A24", dark: "#B85D10", glow: "rgba(230,122,36,0.15)" },
-  adhd:       { main: "#D63384", dark: "#A71D6A", glow: "rgba(214,51,132,0.15)" },
-  giftedness: { main: "#1B6EC2", dark: "#0F4F8C", glow: "rgba(27,110,194,0.15)" },
-  overlap:    { main: "#2E8B57", dark: "#1D6B3F", glow: "rgba(46,139,87,0.15)" },
+const CATS=["autism","adhd","giftedness","overlap"];
+const COL={autism:{m:"#E67A24",d:"#B85D10",g:"rgba(230,122,36,.12)"},adhd:{m:"#D63384",d:"#A71D6A",g:"rgba(214,51,132,.12)"},giftedness:{m:"#1B6EC2",d:"#0F4F8C",g:"rgba(27,110,194,.12)"},overlap:{m:"#2E8B57",d:"#1D6B3F",g:"rgba(46,139,87,.12)"}};
+const Q={
+  autism:["I need routine, order, and clear expectations, especially under stress.","I can hyperfocus on a few interests for a very long time.","I prefer direct communication — I don't like beating around the bush.","I recognize patterns where others don't see them.","I tend toward concrete thinking — abstract concepts without examples frustrate me.","I am sensory hyper- or hypo-sensitive (light, sound, touch, textures).","Repetitive movements, sounds, or behaviors soothe or stimulate me (stimming).","I have difficulty recognizing and naming my emotions (alexithymia).","Non-verbal communication (body language, tone) can be unreadable or exhausting for me.","I control impulses differently than most people."],
+  adhd:["I have difficulty transitioning between tasks — switching focus is a challenge.","I seek novelty — I need constant stimulation.","I hyperfocus on what interests me but can't focus on the rest.","My working memory is unreliable — I forget what I was about to do.","I need movement or fidgeting to focus.","Physical or mental hyperactivity — my brain never stops.","I react quickly in crisis situations — that's when I'm in my element.","My social interactions are affected by impulsivity and focus difficulties.","I perceive time differently — either I can't feel it, or it flies.","My processing speed is non-standard (very fast OR very slow)."],
+  giftedness:["I think in systems — I see how everything connects.","I have a strong need for logic and fairness — injustice hurts me.","I quickly understand complex concepts — 'skip thinking', I jump stages.","I'm fascinated by theory — I can spend hours exploring abstract ideas.","I need intellectual complexity — simple things bore me.","I connect knowledge from different domains in ways that surprise others.","Since childhood, I've been interested in existential questions — meaning of life, death, morality.","I have highly developed morality — ethics is personal to me.","I need connections with people through shared interest in complexity, not small talk.","I predict consequences and problems before others see them."],
+  overlap:["I need time alone and in contemplation to function.","I am emotionally sensitive — I feel intensely.","I learn non-linearly — my learning path looks chaotic but works.","I get bored easily — I need constant intellectual stimulation.","I think in metaphors and symbols — it's my natural language.","My thinking is divergent/creative — I see non-standard solutions.","I have intense curiosity — I must know WHY.","I care about precision in expression — words must be exact.","My development is asynchronous — far ahead in some areas, 'behind' in others.","I developed emotional awareness early — I felt more than my peers."]
+};
+const CLAB={autism:"Part A — Autism",adhd:"Part B — ADHD",giftedness:"Part C — Giftedness",overlap:"Part D — Overlap"};
+const TN={
+  autism:["Routine & order","Hyperfocus (few interests)","Direct communication","Pattern recognition","Concrete thinking","Sensory sensitivity","Stimming","Alexithymia","Non-verbal difficulty","Impulse control"],
+  adhd:["Task-switching","Novelty seeking","Interest-based focus","Working memory","Need for movement","Hyperactivity","Crisis response","Social impulsivity","Time perception","Processing speed"],
+  giftedness:["Systems thinking","Logic & fairness","Skip thinking","Theory fascination","Need for complexity","Cross-domain connections","Existential interests","Developed morality","Connection via complexity","Predicting consequences"],
+  overlap:["Need for solitude","Emotional intensity","Non-linear learning","Boredom / stimulation need","Metaphorical thinking","Divergent thinking","Intense curiosity","Precision in expression","Async development","Early emotional awareness"]
 };
 
-const QUESTIONS = {
-  autism: [
-    "I need routine, order, and clear expectations, especially under stress.",
-    "I can hyperfocus on a few interests for a very long time.",
-    "I prefer direct communication — I don't like beating around the bush.",
-    "I recognize patterns where others don't see them.",
-    "I tend toward concrete thinking — abstract concepts without examples frustrate me.",
-    "I am sensory hyper- or hypo-sensitive (light, sound, touch, textures).",
-    "Repetitive movements, sounds, or behaviors soothe or stimulate me (stimming).",
-    "I have difficulty recognizing and naming my emotions (alexithymia).",
-    "Non-verbal communication (body language, tone of voice) can be unreadable or exhausting for me.",
-    "I control impulses differently than most people.",
-  ],
-  adhd: [
-    "I have difficulty transitioning between tasks — switching focus is a challenge.",
-    "I seek novelty — I need constant stimulation.",
-    "I hyperfocus on what interests me but can't focus on the rest.",
-    "My working memory is unreliable — I forget what I was about to do.",
-    "I need movement or fidgeting to focus.",
-    "Physical or mental hyperactivity — my brain never stops.",
-    "I react quickly in crisis situations — that's when I'm in my element.",
-    "My social interactions are affected by impulsivity and focus difficulties.",
-    "I perceive time differently — either I can't feel it, or it flies.",
-    "My processing speed is non-standard (very fast OR very slow).",
-  ],
-  giftedness: [
-    "I think in systems — I see how everything connects.",
-    "I have a strong need for logic and fairness — injustice hurts me.",
-    "I quickly understand complex concepts — 'skip thinking', I jump stages.",
-    "I'm fascinated by theory — I can spend hours exploring abstract ideas.",
-    "I need intellectual complexity — simple things bore me.",
-    "I connect knowledge from different domains in ways that surprise others.",
-    "Since childhood, I've been interested in existential questions — meaning of life, death, morality.",
-    "I have highly developed morality — ethics is personal to me.",
-    "I need connections with people through shared interest in complexity, not small talk.",
-    "I predict consequences and problems before others see them.",
-  ],
-  overlap: [
-    "I need time alone and in contemplation to function.",
-    "I am emotionally sensitive — I feel intensely.",
-    "I learn non-linearly — my learning path looks chaotic but works.",
-    "I get bored easily — I need constant intellectual stimulation.",
-    "I think in metaphors and symbols — it's my natural language.",
-    "My thinking is divergent/creative — I see non-standard solutions.",
-    "I have intense curiosity — I must know WHY.",
-    "I care about precision in expression — words must be exact.",
-    "My development is asynchronous — far ahead in some areas, 'behind' in others.",
-    "I developed emotional awareness early — I felt more than my peers.",
-  ],
-};
+let S={scr:"intro",ci:0,qi:0,ans:{autism:{},adhd:{},giftedness:{},overlap:{}},name:"",dark:false};
 
-const CAT_LABELS = {
-  autism: "PART A — Autistic Traits",
-  adhd: "PART B — ADHD Traits",
-  giftedness: "PART C — Giftedness Traits",
-  overlap: "PART D — Overlap Traits",
-};
+// ── helpers ──
+const $=s=>document.querySelector(s);
+function h(tag,cl,kids){const e=document.createElement(tag);if(cl)e.className=cl;(kids||[]).forEach(c=>{if(typeof c==="string")e.append(c);else if(c)e.append(c)});return e}
+function hs(tag,a){const e=document.createElementNS("http://www.w3.org/2000/svg",tag);Object.entries(a||{}).forEach(([k,v])=>e.setAttribute(k,v));return e}
 
-const TRAIT_NAMES = {
-  autism: ["Routine & order", "Hyperfocus (few interests)", "Direct communication", "Pattern recognition", "Concrete thinking", "Sensory sensitivity", "Stimming", "Alexithymia", "Non-verbal difficulty", "Impulse control differences"],
-  adhd: ["Task-switching difficulty", "Novelty seeking", "Interest-based focus", "Working memory issues", "Need for movement", "Hyperactivity (mental/physical)", "Crisis response", "Social impulsivity", "Time perception", "Processing speed"],
-  giftedness: ["Systems thinking", "Logic & fairness", "Skip thinking", "Theory fascination", "Need for complexity", "Cross-domain connections", "Existential interests", "Highly developed morality", "Connection through complexity", "Predicting consequences"],
-  overlap: ["Need for solitude", "Emotional intensity", "Non-linear learning", "Easily bored / need stimulation", "Metaphorical thinking", "Divergent/creative thinking", "Intense curiosity (WHY)", "Precision in expression", "Asynchronous development", "Early emotional awareness"],
-};
+// ── scoring ──
+function scores(){const r={};CATS.forEach(c=>{const v=Object.values(S.ans[c]);r[c]=v.length?Math.round(v.reduce((a,b)=>a+b,0)/(v.length*10)*100):0});return r}
+function nAns(c){return Object.keys(S.ans[c]).length}
+function totAns(){return CATS.reduce((s,c)=>s+nAns(c),0)}
 
-// ── STATE ─────────────────────────────────────────────────────────────
-let state = {
-  screen: "intro",   // intro | quiz | report
-  catIdx: 0,
-  qIdx: 0,
-  answers: { autism: {}, adhd: {}, giftedness: {}, overlap: {} },
-  userName: "",
-  darkMode: false,
-};
-
-// ── SCORING (only answered questions) ─────────────────────────────────
-function computeScores() {
-  const s = {};
-  CATS.forEach(c => {
-    const vals = Object.values(state.answers[c]);
-    s[c] = vals.length === 0 ? 0 : Math.round((vals.reduce((a, b) => a + b, 0) / (vals.length * 10)) * 100);
-  });
-  return s;
+// ── diagnosis ──
+function diag(sc){
+  const{autism:au,adhd:ad,giftedness:gi,overlap:ov}=sc;
+  const top=CATS.reduce((a,b)=>sc[a]>=sc[b]?a:b);
+  if(gi>=60&&ad>=60&&au>=60)return{t:"Triple-Exceptional (3e)",s:"Gifted + ADHD + Autistic",tp:"3e",dm:"giftedness",d:"Your brain operates across all three neurodivergent profiles at high intensity. Extremely rare, extraordinarily powerful — demands sophisticated external support."};
+  if(gi>=60&&ad>=60)return{t:"Twice-Exceptional (2e)",s:"Gifted + ADHD",tp:"2e-ga",dm:"giftedness",d:"Primarily a gifted mind with strong ADHD. You predict brilliantly but working memory loses the thread. Not lack of discipline — a brain seeing 50 connections at once."};
+  if(gi>=60&&au>=60)return{t:"Twice-Exceptional (2e)",s:"Gifted + Autistic",tp:"2e-gau",dm:"giftedness",d:"Exceptional giftedness with autistic depth. Pattern recognition, hyperfocus, and systematic thinking create a rare cognitive architecture."};
+  if(ad>=60&&au>=60)return{t:"Dual Neurodivergent",s:"ADHD + Autistic",tp:"dual",dm:"adhd",d:"Novelty-seeking alongside routine needs, hyperfocus alongside switching difficulty. Understanding this duality lets you design systems that work with your brain."};
+  if(gi>=60)return{t:"Gifted Profile",s:"Exceptional cognitive architecture",tp:"gifted",dm:"giftedness",d:"Systems thinking, cross-domain connections, and predicting consequences are your core. You need intellectual complexity to thrive."};
+  if(ad>=60)return{t:"ADHD Profile",s:"High-energy divergent processor",tp:"adhd",dm:"adhd",d:"Your brain thrives on novelty and urgency. Interest-based attention — extraordinary when engaged, struggling when not."};
+  if(au>=60)return{t:"Autistic Profile",s:"Deep pattern processor",tp:"autism",dm:"autism",d:"Pattern recognition, focused depth, systematic thinking. Direct communication and clarity preference are your hallmarks."};
+  if(ov>=60)return{t:"High-Overlap Profile",s:"Convergent neurodivergent traits",tp:"overlap",dm:"overlap",d:"Emotional intensity, divergent thinking, curiosity, and non-linear learning define you."};
+  const mod=CATS.filter(c=>sc[c]>=40);
+  if(mod.length>=2)return{t:"Emerging Profile",s:"Distributed traits",tp:"emerging",dm:top,d:"Moderate traits across categories — may express situationally. A specialist could help map your unique pattern."};
+  if(mod.length===1)return{t:"Mild "+mod[0].charAt(0).toUpperCase()+mod[0].slice(1)+" Traits",s:"Subtle expression",tp:"mild",dm:mod[0],d:"Moderate traits in one domain. Subtle or situational neurodivergent expression — present enough to notice, not dominant."};
+  if(CATS.every(c=>sc[c]===0))return{t:"No Data",s:"Assessment incomplete",tp:"nodata",dm:"giftedness",d:"No answers recorded. Retake and rate each question 0–10."};
+  if(CATS.every(c=>sc[c]<30))return{t:"Neurotypical Profile",s:"Conventional cognitive architecture",tp:"neurotypical",dm:top,d:"Low scores across all domains — a predominantly neurotypical style. Not a deficit. Your brain processes information, regulates attention, and handles input in alignment with the majority. Strengths: adaptability, consistency, conventional processing."};
+  return{t:"Low-Trait Profile",s:"Minimal neurodivergent expression",tp:"lowtrait",dm:top,d:"Low scores with slight presence in some areas. Could mean genuine neurotypicality, context-dependent traits, or expression this tool doesn't fully capture."};
 }
 
-function answeredIn(cat) { return Object.keys(state.answers[cat]).length; }
-function totalAnswered() { return CATS.reduce((s, c) => s + answeredIn(c), 0); }
+// ── tens ──
+function tens(){const r=[];CATS.forEach(c=>Object.entries(S.ans[c]).forEach(([i,v])=>{if(v===10)r.push({tr:TN[c][+i],c})}));return r}
 
-// ── DIAGNOSIS ─────────────────────────────────────────────────────────
-function getDiagnosis(sc) {
-  const { autism: au, adhd: ad, giftedness: gi, overlap: ov } = sc;
-  if (gi >= 60 && ad >= 60 && au >= 60) return { title: "Triple-Exceptional (3e)", sub: "Gifted + ADHD + Autistic — a rare convergence", type: "3e", dom: "giftedness", desc: "Your brain operates across all three neurodivergent profiles at high intensity. You see systems, feel deeply, think divergently, and process through multiple lenses simultaneously. Extremely rare and extraordinarily powerful — but demands sophisticated external support." };
-  if (gi >= 60 && ad >= 60) return { title: "Twice-Exceptional (2e)", sub: "Gifted + ADHD", type: "2e-ga", dom: "giftedness", desc: "Primarily a gifted mind with a strong ADHD component. You predict consequences brilliantly but working memory may lose the thread. You see the entire system but sometimes misplace the keys. Not lack of discipline — a brain seeing 50 connections at once." };
-  if (gi >= 60 && au >= 60) return { title: "Twice-Exceptional (2e)", sub: "Gifted + Autistic", type: "2e-gau", dom: "giftedness", desc: "Exceptional giftedness combined with autistic depth of processing. Pattern recognition, hyperfocus, and systematic thinking at this level create a rare cognitive architecture." };
-  if (ad >= 60 && au >= 60) return { title: "Dual Neurodivergent", sub: "ADHD + Autistic traits", type: "dual-aa", dom: "adhd", desc: "Significant traits from both ADHD and autism — novelty-seeking alongside routine needs, hyperfocus alongside switching difficulty. Understanding this duality is key to designing systems that work with your brain." };
-  if (gi >= 60) return { title: "Gifted Profile", sub: "Exceptional cognitive architecture", type: "gifted", dom: "giftedness", desc: "Systems thinking, cross-domain connections, and predicting consequences are your core strengths. You need intellectual complexity to thrive." };
-  if (ad >= 60) return { title: "ADHD Profile", sub: "High-energy divergent processor", type: "adhd", dom: "adhd", desc: "Your brain thrives on novelty, intensity, and urgency. Interest-based attention means extraordinary focus when engaged, struggle when not. External systems and novelty-rich environments are your allies." };
-  if (au >= 60) return { title: "Autistic Profile", sub: "Deep pattern processor", type: "autism", dom: "autism", desc: "Pattern recognition, focused depth, and systematic thinking are your hallmarks. Direct communication, sensory awareness, and clarity preference create extraordinary capability in the right environment." };
-  if (ov >= 60) return { title: "High-Overlap Profile", sub: "Convergent neurodivergent traits", type: "overlap", dom: "overlap", desc: "Emotional intensity, divergent thinking, curiosity, and non-linear learning define you. Highly creative, deeply feeling, naturally drawn to complexity." };
-  const mod = CATS.filter(c => sc[c] >= 40);
-  const highest = CATS.reduce((a, b) => sc[a] >= sc[b] ? a : b);
-  const allLow = CATS.every(c => sc[c] < 30);
-  const allZero = CATS.every(c => sc[c] === 0);
-
-  if (mod.length >= 2) return { title: "Emerging Profile", sub: "Distributed traits", type: "emerging", dom: highest, desc: "Moderate traits across categories — they may express situationally or more subtly. A specialist assessment could help map your unique pattern." };
-
-  // One category 40+ but below 60
-  if (mod.length === 1) return { title: "Mild " + mod[0].charAt(0).toUpperCase() + mod[0].slice(1) + " Traits", sub: "Subtle neurodivergent expression", type: "mild", dom: mod[0], desc: "You show moderate traits in one domain while others remain low. This suggests a subtle or situational expression of neurodivergent characteristics — present enough to notice, but not dominant. Understanding where these traits emerge can help you build around them." };
-
-  if (allZero) return { title: "No Data Recorded", sub: "Assessment incomplete", type: "nodata", dom: "giftedness", desc: "It looks like no answers were recorded. Please retake the assessment and rate each question on the 0–10 scale to generate your profile." };
-
-  if (allLow) return { title: "Neurotypical Profile", sub: "Conventional cognitive architecture", type: "neurotypical", dom: highest, desc: "Your scores across all domains are low, suggesting a predominantly neurotypical cognitive style. This is not a deficit — it means your brain processes information, regulates attention, and handles social and sensory input in a way that aligns with the statistical majority. Your strengths lie in adaptability, consistency, and conventional processing." };
-
-  return { title: "Low-Trait Profile", sub: "Minimal neurodivergent expression", type: "lowtrait", dom: highest, desc: "Your scores are low across most categories with slight presence in some areas. This could mean you are genuinely neurotypical, that your traits express in ways this tool doesn't capture, or that context matters — you may experience these traits only in specific environments or under stress." };
-}
-
-// ── TENS ───────────────────────────────────────────────────────────────
-function getTens() {
-  const tens = [];
-  CATS.forEach(cat => {
-    Object.entries(state.answers[cat]).forEach(([idx, val]) => {
-      if (val === 10) tens.push({ trait: TRAIT_NAMES[cat][+idx], cat });
-    });
-  });
-  return tens;
-}
-
-// ── STRENGTHS & CHALLENGES ────────────────────────────────────────────
-function getStrengthsChallenges(sc) {
-  const S = [], C = [];
-  const v = (cat, i) => state.answers[cat]?.[i] ?? -1;
-
-  if (sc.autism >= 30) {
-    if (v("autism",3) >= 8) S.push({ t: "Pattern Recognition — You see architecture where others see chaos", c: "autism" });
-    if (v("autism",1) >= 8) S.push({ t: "Deep Hyperfocus — Extraordinary depth when engaged", c: "autism" });
-    if (v("autism",2) >= 8) S.push({ t: "Direct Communication — No time wasted on ambiguity", c: "autism" });
-    if (v("autism",0) >= 8) S.push({ t: "Systematic Organization — You build reliable structures", c: "autism" });
-    if (v("autism",8) >= 7) C.push({ t: "Non-verbal Processing — Reading body language is exhausting", c: "autism" });
-    if (v("autism",7) >= 7) C.push({ t: "Alexithymia — Difficulty naming emotional states", c: "autism" });
-    if (v("autism",5) >= 7) C.push({ t: "Sensory Load — Environmental stimuli can overwhelm", c: "autism" });
+// ── strengths & challenges ──
+function strCha(sc){
+  const St=[],Ch=[];const v=(c,i)=>S.ans[c]?.[i]??-1;
+  if(sc.autism>=30){
+    if(v("autism",3)>=8)St.push({x:"Pattern Recognition — architecture where others see chaos",c:"autism"});
+    if(v("autism",1)>=8)St.push({x:"Deep Hyperfocus — extraordinary depth when engaged",c:"autism"});
+    if(v("autism",2)>=8)St.push({x:"Direct Communication — no time wasted on ambiguity",c:"autism"});
+    if(v("autism",8)>=7)Ch.push({x:"Non-verbal Processing — reading body language is exhausting",c:"autism"});
+    if(v("autism",7)>=7)Ch.push({x:"Alexithymia — difficulty naming emotional states",c:"autism"});
+    if(v("autism",5)>=7)Ch.push({x:"Sensory Load — environmental stimuli overwhelm",c:"autism"});
   }
-  if (sc.adhd >= 30) {
-    if (v("adhd",6) >= 8) S.push({ t: "Crisis Brilliance — You come alive under pressure", c: "adhd" });
-    if (v("adhd",1) >= 8) S.push({ t: "Novelty Drive — Constant innovation and fresh perspectives", c: "adhd" });
-    if (v("adhd",2) >= 8) S.push({ t: "Interest Hyperfocus — Unstoppable when passionate", c: "adhd" });
-    if (v("adhd",3) >= 7) C.push({ t: "Working Memory — Steps lost between vision and execution", c: "adhd" });
-    if (v("adhd",8) >= 7) C.push({ t: "Time Perception — Deadlines and estimates feel distorted", c: "adhd" });
-    if (v("adhd",0) >= 7) C.push({ t: "Task Switching — Transitions drain significant energy", c: "adhd" });
+  if(sc.adhd>=30){
+    if(v("adhd",6)>=8)St.push({x:"Crisis Brilliance — you come alive under pressure",c:"adhd"});
+    if(v("adhd",1)>=8)St.push({x:"Novelty Drive — constant innovation",c:"adhd"});
+    if(v("adhd",2)>=8)St.push({x:"Interest Hyperfocus — unstoppable when passionate",c:"adhd"});
+    if(v("adhd",3)>=7)Ch.push({x:"Working Memory — steps lost between vision and execution",c:"adhd"});
+    if(v("adhd",8)>=7)Ch.push({x:"Time Perception — deadlines feel distorted",c:"adhd"});
+    if(v("adhd",0)>=7)Ch.push({x:"Task Switching — transitions drain energy",c:"adhd"});
   }
-  if (sc.giftedness >= 30) {
-    if (v("giftedness",0) >= 8) S.push({ t: "Systems Vision — Frameworks where others see fragments", c: "giftedness" });
-    if (v("giftedness",9) >= 8) S.push({ t: "Predictive Thinking — You foresee problems before they emerge", c: "giftedness" });
-    if (v("giftedness",5) >= 8) S.push({ t: "Cross-Pollination — Merging domains into unique syntheses", c: "giftedness" });
-    if (v("giftedness",2) >= 8) S.push({ t: "Rapid Comprehension — Skip thinking lets you leap ahead", c: "giftedness" });
-    if (v("giftedness",8) >= 8) C.push({ t: "Isolation — Few people match your depth of interest", c: "giftedness" });
-    if (v("giftedness",4) >= 8) C.push({ t: "Complexity Addiction — Hard to engage with 'simple' necessities", c: "giftedness" });
+  if(sc.giftedness>=30){
+    if(v("giftedness",0)>=8)St.push({x:"Systems Vision — frameworks where others see fragments",c:"giftedness"});
+    if(v("giftedness",9)>=8)St.push({x:"Predictive Thinking — foresee problems before they emerge",c:"giftedness"});
+    if(v("giftedness",5)>=8)St.push({x:"Cross-Pollination — merging domains uniquely",c:"giftedness"});
+    if(v("giftedness",2)>=8)St.push({x:"Rapid Comprehension — skip thinking",c:"giftedness"});
+    if(v("giftedness",8)>=8)Ch.push({x:"Isolation — few match your depth",c:"giftedness"});
+    if(v("giftedness",4)>=8)Ch.push({x:"Complexity Addiction — simple tasks are painful",c:"giftedness"});
   }
-  if (sc.overlap >= 30) {
-    if (v("overlap",1) >= 8) S.push({ t: "Emotional Depth — Connect and create at levels others can't reach", c: "overlap" });
-    if (v("overlap",5) >= 8) S.push({ t: "Divergent Thinking — Solutions nobody else considers", c: "overlap" });
-    if (v("overlap",6) >= 8) S.push({ t: "Intense Curiosity — Your drive to understand fuels everything", c: "overlap" });
-    if (v("overlap",1) >= 8) C.push({ t: "Emotional Intensity — Burnout is a recurring threat", c: "overlap" });
-    if (v("overlap",3) >= 7) C.push({ t: "Stimulation Hunger — Simple tasks induce boredom paralysis", c: "overlap" });
-    if (v("overlap",8) >= 7) C.push({ t: "Asynchronous Development — Uneven strengths create frustration", c: "overlap" });
+  if(sc.overlap>=30){
+    if(v("overlap",1)>=8)St.push({x:"Emotional Depth — connect at levels others can't",c:"overlap"});
+    if(v("overlap",5)>=8)St.push({x:"Divergent Thinking — solutions nobody considers",c:"overlap"});
+    if(v("overlap",6)>=8)St.push({x:"Intense Curiosity — must know WHY",c:"overlap"});
+    if(v("overlap",1)>=8)Ch.push({x:"Emotional Intensity — burnout threat",c:"overlap"});
+    if(v("overlap",3)>=7)Ch.push({x:"Stimulation Hunger — boredom paralysis",c:"overlap"});
   }
-  // Neurotypical / low-profile strengths
-  if (S.length === 0 && C.length === 0) {
-    const avg = (sc.autism + sc.adhd + sc.giftedness + sc.overlap) / 4;
-    if (avg < 30) {
-      S.push({ t: "Adaptability — You can adjust to different environments without sensory or cognitive friction", c: "overlap" });
-      S.push({ t: "Steady Focus — Attention is distributed evenly rather than interest-dependent", c: "adhd" });
-      S.push({ t: "Social Fluency — Non-verbal communication and social cues come naturally", c: "autism" });
-      S.push({ t: "Emotional Regulation — You process emotions without extreme intensity", c: "overlap" });
-      S.push({ t: "Consistent Execution — You can follow through on plans without external scaffolding", c: "giftedness" });
-      C.push({ t: "Potential Blind Spots — You may underestimate how differently neurodivergent people process", c: "overlap" });
-      C.push({ t: "Routine Risk — Conventional processing can lead to autopilot if not challenged", c: "giftedness" });
+  if(!St.length&&!Ch.length){
+    const avg=(sc.autism+sc.adhd+sc.giftedness+sc.overlap)/4;
+    if(avg<30){
+      St.push({x:"Adaptability — adjust to environments without friction",c:"overlap"});
+      St.push({x:"Steady Focus — attention is evenly distributed",c:"adhd"});
+      St.push({x:"Social Fluency — non-verbal cues come naturally",c:"autism"});
+      St.push({x:"Consistent Execution — follow through without scaffolding",c:"giftedness"});
+      Ch.push({x:"Autopilot Risk — conventional processing can lead to coasting",c:"giftedness"});
+      Ch.push({x:"Blind Spots — may underestimate neurodivergent processing",c:"overlap"});
     }
   }
-
-  return { strengths: S, challenges: C };
+  return{st:St,ch:Ch};
 }
 
-// ── FORMULA ───────────────────────────────────────────────────────────
-function getFormula(diag) {
-  const map = {
-    "3e":     { f: "Systems Vision × Patterns × Intensity ÷ (Memory Chaos + Sensory Load)", m: "You need an external operating system that manages what your extraordinary brain cannot hold alone." },
-    "2e-ga":  { f: "Prediction × Creativity × Speed ÷ (Working Memory + Time Blindness)", m: "Systems that capture rapid insights before they evaporate. External memory and deadline scaffolding." },
-    "2e-gau": { f: "Systems Depth × Pattern Focus × Precision ÷ (Sensory Load + Social Energy)", m: "Controlled environments let your deep processing thrive. Reduce noise, protect solitude." },
-    "dual-aa":{ f: "Focus × Routine × Crisis Speed ÷ (Switching Cost + Sensory Input)", m: "Predictable variety — structured novelty within reliable frameworks." },
-    gifted:   { f: "Systems Vision × Cross-Domain × Prediction ÷ (Isolation + Understimulation)", m: "Complexity-rich environments and peers who match your depth." },
-    adhd:     { f: "Novelty × Crisis Speed × Interest Focus ÷ (Time Blindness + Memory Gaps)", m: "External scaffolding. Your brain runs on engagement, not discipline." },
-    autism:   { f: "Pattern Recognition × Systematic Depth × Focus ÷ (Sensory Overload + Communication Cost)", m: "Environments designed for your processing style — predictable, low-sensory, clear." },
-    overlap:  { f: "Emotional Depth × Curiosity × Creativity ÷ (Overstimulation + Boredom)", m: "Creative autonomy with emotional space. Protect energy, feed curiosity." },
-    neurotypical: { f: "Consistency × Adaptability × Social Fluency ÷ (Autopilot Risk + Comfort Zone)", m: "Your brain doesn't fight you — the risk is coasting. Use intentional challenge, stretch goals, and novel experiences to keep growing." },
-    lowtrait: { f: "Stability × Flexibility × Conventional Processing ÷ (Understimulation Risk)", m: "Your baseline is reliable. Invest in deliberate growth edges — places where you intentionally push beyond comfortable." },
-    mild:     { f: "Baseline Stability × (Mild Trait Awareness) ÷ Context Sensitivity", m: "Your subtle traits emerge in specific contexts. Learn which situations amplify them and design accordingly." },
-    nodata:   { f: "— No data —", m: "Complete the assessment to generate your formula." },
-    emerging: { f: "Distributed Traits × Context Variability ÷ Clarity", m: "Your profile is mosaic-like. Map which traits show up where, and build systems for the contexts that challenge you most." },
-  };
-  return map[diag.type] || { f: "Your Traits × Your Context ÷ Environmental Fit", m: "Understand which traits are strengths and which need support, then design accordingly." };
+// ── formula ──
+function formula(dg){
+  const m={"3e":{f:"Systems × Patterns × Intensity ÷ (Memory + Sensory Load)",m:"External operating system needed for what your brain can't hold alone."},"2e-ga":{f:"Prediction × Creativity × Speed ÷ (Memory + Time Blindness)",m:"Capture insights before they evaporate. External memory + deadline scaffolding."},"2e-gau":{f:"Systems × Pattern Focus × Precision ÷ (Sensory + Social Energy)",m:"Controlled environments for deep processing. Reduce noise, protect solitude."},dual:{f:"Focus × Routine × Crisis Speed ÷ (Switching + Sensory)",m:"Structured novelty within reliable frameworks."},gifted:{f:"Systems × Cross-Domain × Prediction ÷ (Isolation + Understimulation)",m:"Complexity-rich environments. Intellectual challenge is fuel."},adhd:{f:"Novelty × Crisis × Interest ÷ (Time Blindness + Memory)",m:"External scaffolding. Your brain runs on engagement, not discipline."},autism:{f:"Patterns × Depth × Focus ÷ (Sensory + Communication Cost)",m:"Predictable, low-sensory, clear environments."},overlap:{f:"Emotion × Curiosity × Creativity ÷ (Overstimulation + Boredom)",m:"Creative autonomy with emotional space."},neurotypical:{f:"Consistency × Adaptability × Fluency ÷ (Autopilot + Comfort Zone)",m:"Your brain doesn't fight you. Use intentional challenge to keep growing."},lowtrait:{f:"Stability × Flexibility ÷ Understimulation Risk",m:"Reliable baseline. Invest in deliberate growth edges."},mild:{f:"Baseline × Trait Awareness ÷ Context Sensitivity",m:"Subtle traits emerge in specific contexts. Design for those."},emerging:{f:"Distributed Traits × Context ÷ Clarity",m:"Mosaic profile. Map which traits show up where."},nodata:{f:"— —",m:"Complete assessment to generate."}};
+  return m[dg.tp]||{f:"Traits × Context ÷ Fit",m:"Design your environment accordingly."};
 }
 
-// ── RECOMMENDATIONS ──────────────────────────────────────────────────
-function getRecommendations(sc, diag) {
-  const R = [];
-  if (sc.overlap >= 50 || sc.giftedness >= 50) R.push({ t: "Protect Your Solitude", d: "Alone time is infrastructure, not luxury. Schedule it like a non-negotiable meeting. Minimum 1–2 hours daily without external input." });
-  if (sc.adhd >= 50) {
-    R.push({ t: "Build an External Brain", d: "Your working memory needs backup. Not another planner — a living system: AI workflow, assistant, or dashboard that tells you each morning exactly what to focus on." });
-    R.push({ t: "Use Novelty Strategically", d: "Your brain runs on engagement, not willpower. Gamify boring tasks, rotate projects, use body-doubling, set micro-deadlines." });
-  }
-  if (sc.giftedness >= 50) {
-    R.push({ t: "Design, Don't Execute", d: "Your brain is built for architecture — designing systems, seeing patterns, creating frameworks. Delegate operational execution wherever possible." });
-    R.push({ t: "Seek Intellectual Peers", d: "Loneliness from intellectual mismatch is real. Find communities, mentors, or collaborators who energize rather than drain you." });
-  }
-  if (sc.autism >= 50) {
-    R.push({ t: "Design Your Sensory Environment", d: "Audit your workspace for sensory triggers. Noise-canceling headphones, lighting control — small changes create massive productivity gains." });
-    R.push({ t: "Leverage Your Routines", d: "Your need for structure is a superpower when intentionally designed. Predictability frees your brain to focus on what matters." });
-  }
-  if (sc.overlap >= 50) R.push({ t: "Honor Your Learning Style", d: "Non-linear learning is not broken learning. Your brain builds webs, not chains. Trust the process." });
-  if (diag.type === "3e" || diag.type.startsWith("2e")) R.push({ t: "Complexity Is Your USP", d: "Your need for complexity is not a flaw — it's your Unique Selling Proposition. Find contexts that need what you naturally produce." });
-  if (sc.overlap >= 60 || (sc.giftedness >= 50 && sc.adhd >= 50)) R.push({ t: "Burnout Prevention Protocol", d: "Build recovery into your schedule before you need it. Monitor your emotional tank, not just your task list." });
-  if (R.length === 0) {
-    // Neurotypical / low-trait specific recommendations
-    if (diag.type === "neurotypical" || diag.type === "lowtrait") {
-      R.push({ t: "Leverage Your Consistency", d: "Your brain doesn't sabotage your plans. This is a genuine superpower. Use it by setting clear, ambitious goals — your ability to follow through consistently is rare and valuable." });
-      R.push({ t: "Seek Deliberate Challenge", d: "Without neurodivergent intensity pushing you toward complexity, you may need to intentionally create growth edges. Take on projects outside your comfort zone. Travel. Learn something radically different." });
-      R.push({ t: "Build Neurodiversity Literacy", d: "Understanding how neurodivergent people think will make you a better collaborator, leader, and partner. Many of your colleagues, friends, or family members may operate very differently than you." });
-      R.push({ t: "Watch for Autopilot", d: "Conventional processing can lead to coasting — doing things the way they've always been done. Build in regular reflection points to ask: Is this still the right path, or just the comfortable one?" });
-    } else if (diag.type === "mild") {
-      R.push({ t: "Map Your Context Triggers", d: "Your subtle traits likely emerge in specific situations — stress, boredom, overstimulation, or particular social contexts. Keep a journal of when you feel 'different' to understand your pattern." });
-      R.push({ t: "Don't Dismiss Subtle Experiences", d: "Mild traits are still real traits. You don't need a high score to benefit from understanding your cognitive style. Small accommodations can make a big difference." });
-    } else {
-      R.push({ t: "Explore Further", d: "Consider whether specific environments or support systems might help you work more comfortably with your cognitive style." });
-    }
+// ── recommendations ──
+function recs(sc,dg){
+  const R=[];
+  if(sc.overlap>=50||sc.giftedness>=50)R.push({t:"Protect Solitude",d:"Alone time is infrastructure. 1–2 hours daily without input."});
+  if(sc.adhd>=50){R.push({t:"External Brain",d:"Living system that tells you each morning what to focus on."});R.push({t:"Novelty Strategy",d:"Gamify, rotate, body-double, micro-deadline. Engagement > willpower."});}
+  if(sc.giftedness>=50){R.push({t:"Design, Don't Execute",d:"Your value is the blueprint. Delegate operations."});R.push({t:"Intellectual Peers",d:"Loneliness from mismatch is real. Find matching depth."});}
+  if(sc.autism>=50){R.push({t:"Sensory Environment",d:"Audit workspace. Noise-canceling, lighting, texture — small changes, massive gains."});R.push({t:"Leverage Routines",d:"Intentional structure frees your brain for what matters."});}
+  if(sc.overlap>=50)R.push({t:"Honor Learning Style",d:"Non-linear ≠ broken. Your brain builds webs, not chains."});
+  if(dg.tp==="3e"||dg.tp.startsWith("2e"))R.push({t:"Complexity = USP",d:"Don't simplify yourself. Find contexts that need your depth."});
+  if(sc.overlap>=60||(sc.giftedness>=50&&sc.adhd>=50))R.push({t:"Burnout Protocol",d:"Recovery before you need it. Monitor emotional tank."});
+  if(!R.length){
+    if(dg.tp==="neurotypical"||dg.tp==="lowtrait"){
+      R.push({t:"Leverage Consistency",d:"Your follow-through is rare. Set ambitious goals."});
+      R.push({t:"Seek Challenge",d:"Deliberately create growth edges outside comfort zone."});
+      R.push({t:"Neurodiversity Literacy",d:"Understand how others process differently."});
+      R.push({t:"Watch Autopilot",d:"Is this the right path or just comfortable?"});
+    }else if(dg.tp==="mild"){
+      R.push({t:"Map Context Triggers",d:"Journal when you feel 'different' to understand your pattern."});
+      R.push({t:"Don't Dismiss Subtle",d:"Mild traits are real. Small accommodations help."});
+    }else R.push({t:"Explore Further",d:"Consider specialist assessment for deeper mapping."});
   }
   return R;
 }
 
-// ── DEEP ANALYSIS ────────────────────────────────────────────────────
-function getDeepAnalysis(sc) {
-  const A = [];
-  if (sc.giftedness >= 50) A.push({ t: "The Systems Architect", d: "Your combination of systems thinking, pattern recognition, and cross-domain connections places you in a rare cognitive category. You see architecture where others see chaos. Your brain builds maps, networks, webs of meaning." });
-  if (sc.adhd >= 50 && sc.giftedness >= 50) A.push({ t: "The Gifted-ADHD Paradox", d: "Brilliant prediction meets unreliable memory. You see the entire system, forecast consequences, design elegant solutions — then forget what you were doing. The gap between vision and execution isn't about discipline. It's about external systems." });
-  else if (sc.adhd >= 50) A.push({ t: "The ADHD Engine", d: "Your attention runs on interest, not importance. When engaged, flow states produce extraordinary work. When disengaged, even simple tasks feel impossible. Design your life so engagement is the default." });
-  if (sc.autism >= 50 && sc.giftedness >= 50) A.push({ t: "Autistic Gold in a Gifted Mind", d: "Pattern recognition that borders on prescience, hyperfocus producing mastery, directness cutting through noise — your autistic traits amplify giftedness into something rare and powerful." });
-  else if (sc.autism >= 50) A.push({ t: "The Deep Processor", d: "Where others skim surfaces, you analyze structure beneath. This depth creates both your greatest capability and vulnerability — brilliance requiring the right environmental accommodation." });
-  if (sc.overlap >= 60) A.push({ t: "The Emotional Ocean", d: "Emotional intensity paired with early awareness suggests Dabrowski's overexcitability at a high level. Contemplative practices and emotional literacy aren't optional — they're essential infrastructure." });
-  if (sc.adhd >= 50 && sc.autism >= 50) A.push({ t: "The Dual Tension", d: "ADHD craves novelty while autistic traits crave routine. Resolution: structured variety — reliable frameworks containing fresh content. Same morning routine, different creative projects." });
-  if (A.length === 0) {
-    const avg = (sc.autism + sc.adhd + sc.giftedness + sc.overlap) / 4;
-    if (avg < 20) {
-      A.push({ t: "The Conventional Processor", d: "Your brain processes information, regulates attention, and handles social input in a way that aligns with the majority. This isn't absence of complexity — it's a different kind of processing. Where neurodivergent brains often trade consistency for intensity, yours trades intensity for reliability. You don't fight your own cognitive system, which means your energy goes toward execution rather than self-management." });
-      A.push({ t: "What Low Scores Actually Mean", d: "Low scores on this screener don't mean 'no traits' — they mean your cognitive style doesn't cluster around these specific neurodivergent patterns. You may still have significant strengths, deep interests, and emotional complexity. They just don't express through the autism/ADHD/giftedness framework. Your architecture is different, not lesser." });
-      A.push({ t: "The Consistency Advantage", d: "Neurotypical processing often gets overlooked in neurodiversity conversations, but it carries genuine advantages: predictable energy levels, stable working memory, reliable social processing, and the ability to execute multi-step plans without external scaffolding. These are assets that many neurodivergent people spend enormous energy trying to simulate." });
-    } else {
-      A.push({ t: "Your Cognitive Landscape", d: "Balanced or subtle neurodivergent expression. Pay attention to which questions resonated most — those reveal key areas for self-understanding. Even modest scores can indicate meaningful cognitive patterns when they cluster in specific areas." });
-    }
+// ── deep analysis ──
+function analysis(sc){
+  const A=[];
+  if(sc.giftedness>=50)A.push({t:"Systems Architect",d:"You see architecture where others see chaos. Maps, networks, webs of meaning."});
+  if(sc.adhd>=50&&sc.giftedness>=50)A.push({t:"Gifted-ADHD Paradox",d:"Brilliant prediction meets unreliable memory. The gap isn't discipline — it's external systems."});
+  else if(sc.adhd>=50)A.push({t:"ADHD Engine",d:"Attention runs on interest, not importance. Design life for default engagement."});
+  if(sc.autism>=50&&sc.giftedness>=50)A.push({t:"Autistic Gold",d:"Pattern prescience + hyperfocus mastery + directness. Amplified giftedness."});
+  else if(sc.autism>=50)A.push({t:"Deep Processor",d:"You analyze structure beneath surfaces. Brilliance needing the right environment."});
+  if(sc.overlap>=60)A.push({t:"Emotional Ocean",d:"Dabrowski's overexcitability. Contemplative practice is essential infrastructure."});
+  if(sc.adhd>=50&&sc.autism>=50)A.push({t:"Dual Tension",d:"ADHD wants novelty, autism wants routine. Solution: structured variety."});
+  if(!A.length){
+    const avg=(sc.autism+sc.adhd+sc.giftedness+sc.overlap)/4;
+    if(avg<20){
+      A.push({t:"Conventional Processor",d:"Your brain doesn't trade consistency for intensity. Energy goes to execution, not self-management."});
+      A.push({t:"What Low Scores Mean",d:"Not 'no traits' — your style doesn't cluster around these patterns. Different architecture, not lesser."});
+      A.push({t:"Consistency Advantage",d:"Predictable energy, stable memory, reliable social processing. Assets many neurodivergent people spend enormous energy simulating."});
+    }else A.push({t:"Your Landscape",d:"Balanced expression. Which questions resonated most reveal your key patterns."});
   }
   return A;
 }
 
-// ── RENDER HELPERS ────────────────────────────────────────────────────
-const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => document.querySelectorAll(sel);
-
-function el(tag, attrs = {}, children = []) {
-  const e = document.createElement(tag);
-  Object.entries(attrs).forEach(([k, v]) => {
-    if (k === "class") e.className = v;
-    else if (k === "style" && typeof v === "object") Object.assign(e.style, v);
-    else if (k.startsWith("on")) e.addEventListener(k.slice(2).toLowerCase(), v);
-    else if (k === "html") e.innerHTML = v;
-    else if (k === "text") e.textContent = v;
-    else e.setAttribute(k, v);
+// ── RADAR SVG ──
+function radar(sc){
+  const sz=320,cx=sz/2,cy=sz/2,mr=sz*.32;
+  const ax=[{k:"giftedness",a:-90},{k:"overlap",a:0},{k:"adhd",a:90},{k:"autism",a:180}];
+  const xy=(deg,r)=>[cx+r*Math.cos(deg*Math.PI/180),cy+r*Math.sin(deg*Math.PI/180)];
+  const svg=hs("svg",{viewBox:`0 0 ${sz} ${sz}`,class:"radar-svg"});
+  [20,40,60,80,100].forEach(lv=>{
+    const pts=ax.map(a=>xy(a.a,(lv/100)*mr));
+    svg.append(hs("polygon",{points:pts.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(" "),class:lv===100?"r-grid-o":"r-grid"}));
   });
-  children.forEach(c => {
-    if (typeof c === "string") e.appendChild(document.createTextNode(c));
-    else if (c) e.appendChild(c);
+  ax.forEach(a=>{const[ex,ey]=xy(a.a,mr);svg.append(hs("line",{x1:cx,y1:cy,x2:ex.toFixed(1),y2:ey.toFixed(1),class:"r-axis"}))});
+  const dp=ax.map(a=>xy(a.a,(sc[a.k]/100)*mr));
+  svg.append(hs("polygon",{points:dp.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(" "),class:"r-shape"}));
+  dp.forEach(([x,y],i)=>svg.append(hs("circle",{cx:x.toFixed(1),cy:y.toFixed(1),r:"5",fill:COL[ax[i].k].m,class:"r-dot"})));
+  ax.forEach(a=>{
+    const[lx,ly]=xy(a.a,mr+32);const lb=a.k.charAt(0).toUpperCase()+a.k.slice(1);
+    const t1=hs("text",{x:lx.toFixed(1),y:(ly-5).toFixed(1),"text-anchor":"middle",class:"r-lbl",fill:COL[a.k].m});t1.textContent=lb;svg.append(t1);
+    const t2=hs("text",{x:lx.toFixed(1),y:(ly+10).toFixed(1),"text-anchor":"middle",class:"r-val",fill:COL[a.k].d});t2.textContent=sc[a.k]+"%";svg.append(t2);
   });
-  return e;
-}
-
-function svgEl(tag, attrs = {}) {
-  const e = document.createElementNS("http://www.w3.org/2000/svg", tag);
-  Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
-  return e;
-}
-
-// ── THEME ─────────────────────────────────────────────────────────────
-function toggleTheme() {
-  state.darkMode = !state.darkMode;
-  document.documentElement.setAttribute("data-theme", state.darkMode ? "dark" : "light");
-  const btn = $(".theme-toggle");
-  if (btn) btn.textContent = state.darkMode ? "☀️" : "🌙";
-}
-
-// ── RADAR CHART (SVG) ─────────────────────────────────────────────────
-function buildRadar(scores) {
-  const size = 340, cx = size/2, cy = size/2, maxR = size * 0.33;
-  const axes = [
-    { key: "giftedness", angle: -90 },
-    { key: "overlap", angle: 0 },
-    { key: "adhd", angle: 90 },
-    { key: "autism", angle: 180 },
-  ];
-  const toXY = (deg, r) => {
-    const rad = deg * Math.PI / 180;
-    return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)];
-  };
-
-  const svg = svgEl("svg", { viewBox: `0 0 ${size} ${size}`, class: "radar-svg" });
-
-  // Grid
-  [20,40,60,80,100].forEach(lv => {
-    const pts = axes.map(a => toXY(a.angle, (lv/100)*maxR));
-    const poly = svgEl("polygon", {
-      points: pts.map(([x,y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" "),
-      class: lv === 100 ? "radar-grid-accent" : "radar-grid",
-      "stroke-width": lv === 100 ? "1.5" : "0.7",
-    });
-    svg.appendChild(poly);
-  });
-
-  // Axes
-  axes.forEach(a => {
-    const [ex, ey] = toXY(a.angle, maxR);
-    svg.appendChild(svgEl("line", { x1: cx, y1: cy, x2: ex.toFixed(1), y2: ey.toFixed(1), class: "radar-axis" }));
-  });
-
-  // Data shape
-  const dataPoints = axes.map(a => toXY(a.angle, (scores[a.key]/100)*maxR));
-  const polygon = svgEl("polygon", {
-    points: dataPoints.map(([x,y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" "),
-    class: "radar-shape",
-  });
-  svg.appendChild(polygon);
-
-  // Data dots
-  dataPoints.forEach(([x,y], i) => {
-    svg.appendChild(svgEl("circle", {
-      cx: x.toFixed(1), cy: y.toFixed(1), r: "6",
-      fill: CAT_COLORS[axes[i].key].main,
-      class: "radar-point",
-    }));
-  });
-
-  // Labels
-  axes.forEach(a => {
-    const [lx, ly] = toXY(a.angle, maxR + 34);
-    const label = a.key.charAt(0).toUpperCase() + a.key.slice(1);
-    const tLabel = svgEl("text", {
-      x: lx.toFixed(1), y: (ly - 6).toFixed(1),
-      "text-anchor": "middle", class: "radar-label",
-      fill: CAT_COLORS[a.key].main,
-    });
-    tLabel.textContent = label;
-    svg.appendChild(tLabel);
-
-    const tVal = svgEl("text", {
-      x: lx.toFixed(1), y: (ly + 11).toFixed(1),
-      "text-anchor": "middle", class: "radar-value",
-      fill: CAT_COLORS[a.key].dark,
-    });
-    tVal.textContent = scores[a.key] + "%";
-    svg.appendChild(tVal);
-  });
-
   return svg;
 }
 
-// ── SCREENS ──────────────────────────────────────────────────────────
-
-function renderIntro() {
-  const root = $("#app");
-  root.innerHTML = "";
-
-  const screen = el("div", { class: "screen intro-screen" }, [
-    el("div", { class: "container" }, [
-      // Badge
-      el("div", { class: "intro-badge anim-fade-up" }, ["NEUROPROFILE"]),
-      // Icon + Title
-      el("div", { class: "intro-icon anim-fade-up stagger-1", text: "🧠" }),
-      el("h1", { class: "intro-title anim-fade-up stagger-2", text: "NeuroProfile" }),
-      el("p", { class: "intro-subtitle anim-fade-up stagger-3", text: "Cognitive Architecture Screener" }),
-      el("p", { class: "intro-meta anim-fade-up stagger-4", text: "40 questions · 4 domains · scale 0–10" }),
-
-      // Description box
-      el("div", { class: "intro-desc-box anim-fade-up stagger-5" }, [
-        el("p", { class: "intro-desc", text: "NeuroProfile is a self-report cognitive architecture screener designed to map traits across four domains:" }),
-
-        // Domain grid
-        el("div", { class: "domain-grid" }, [
-          makeDomainChip("autism", "🟠", "Autism", "Pattern depth, structure, sensory profile"),
-          makeDomainChip("adhd", "🔴", "ADHD", "Energy regulation, novelty drive, working memory"),
-          makeDomainChip("giftedness", "⚫", "Giftedness", "Systems thinking, abstraction, synthesis"),
-          makeDomainChip("overlap", "🟢", "Overlap", "Shared neurodivergent intensity traits"),
-        ]),
-
-        el("div", { class: "intro-warning" }, [
-          el("span", { class: "warn-icon", text: "⚠️" }),
-          el("span", { text: "This is NOT a clinical diagnosis. It is a reflective profiling tool." }),
-        ]),
-
-        el("div", { class: "divider" }),
-
-        // What it does
-        el("div", { class: "intro-section-title" }, [
-          el("span", { class: "emoji", text: "✨" }),
-          el("span", { text: "What It Does" }),
-        ]),
-        el("ul", { class: "feature-list" }, [
-          featureItem("📊", "Maps 40 structured self-report items (0–10 scale)"),
-          featureItem("🧭", "Calculates category intensity (0–100%)"),
-          featureItem("🕸", "Generates radar visualization (SVG-based)"),
-          featureItem("⚡", "Identifies potential strengths"),
-          featureItem("💥", "Flags friction points and challenges"),
-          featureItem("🧠", "Produces a rule-based profile summary"),
-        ]),
-        el("p", { class: "intro-desc", style: { marginTop: "8px", fontStyle: "italic", fontSize: "11px", color: "var(--text-muted)" }, text: "Built as a cognitive pattern mapper, not a medical instrument." }),
-
-        el("div", { class: "divider" }),
-
-        // Radar model
-        el("div", { class: "intro-section-title" }, [
-          el("span", { class: "emoji", text: "📈" }),
-          el("span", { text: "Radar Model" }),
-        ]),
-        el("p", { class: "intro-desc", text: "The radar chart visualizes cognitive distribution across four axes: Giftedness (top), Overlap (right), ADHD (bottom), Autism (left)." }),
-
-        el("div", { class: "divider" }),
-
-        // Profile classification
-        el("div", { class: "intro-section-title" }, [
-          el("span", { class: "emoji", text: "🧩" }),
-          el("span", { text: "Profile Classification" }),
-        ]),
-        el("p", { class: "intro-desc", text: "Profiles are threshold-driven and transparent. Possible outputs:" }),
-        el("div", { class: "profile-tags" }, [
-          profileTag("🧠 Triple-Exceptional (3e)"),
-          profileTag("🧠 Twice-Exceptional (2e)"),
-          profileTag("⚫ Gifted-Dominant"),
-          profileTag("🔴 ADHD-Dominant"),
-          profileTag("🟠 Autism-Dominant"),
-          profileTag("🟢 High-Overlap"),
-          profileTag("🌱 Emerging Profile"),
-        ]),
-        el("p", { class: "intro-desc", style: { fontSize: "11px", fontStyle: "italic", color: "var(--text-muted)" }, text: "Classification logic is deterministic and editable." }),
-
-        el("div", { class: "divider" }),
-
-        // Purpose
-        el("div", { class: "intro-section-title" }, [
-          el("span", { class: "emoji", text: "🚀" }),
-          el("span", { text: "Purpose" }),
-        ]),
-        el("ul", { class: "feature-list" }, [
-          featureItem("→", "Externalize cognitive structure"),
-          featureItem("→", "Clarify leverage vs friction"),
-          featureItem("→", "Support better system design"),
-          featureItem("→", "Help builders architect around their brain"),
-        ]),
-        el("p", { class: "intro-desc", style: { marginTop: "8px" }, text: "Built for operators, founders, architects, researchers and systems thinkers." }),
-      ]),
-
-      // Category pills
-      el("div", { class: "cat-pills anim-fade-up stagger-6" }, CATS.map(c =>
-        el("span", { class: "cat-pill", style: { background: CAT_COLORS[c].main }, text: `${c === "overlap" ? "Overlap" : c.charAt(0).toUpperCase() + c.slice(1)} · 10Q` })
-      )),
-
-      // Name input
-      (() => {
-        const inp = el("input", { type: "text", class: "name-input anim-fade-up stagger-7", placeholder: "Your name (optional)", value: state.userName });
-        inp.addEventListener("input", e => state.userName = e.target.value);
-        return inp;
-      })(),
-
-      // Start button
-      el("div", { class: "anim-fade-up stagger-8" }, [
-        (() => {
-          const btn = el("button", { class: "btn-primary", text: "BEGIN ASSESSMENT" });
-          btn.addEventListener("click", () => { state.screen = "quiz"; state.catIdx = 0; state.qIdx = 0; render(); });
-          return btn;
-        })(),
-      ]),
-
-      el("p", { class: "disclaimer anim-fade stagger-8", text: "This tool is for self-reflection only. It does not replace clinical evaluation." }),
-    ]),
-  ]);
-  root.appendChild(screen);
+// ── THEME ──
+function toggleTheme(){
+  S.dark=!S.dark;
+  document.documentElement.setAttribute("data-theme",S.dark?"dark":"light");
+  $(".theme-toggle").textContent=S.dark?"☀️":"🌙";
 }
 
-function makeDomainChip(cat, emoji, name, desc) {
-  return el("div", { class: "domain-chip" }, [
-    el("span", { class: "dot", style: { background: CAT_COLORS[cat].main } }),
-    el("div", {}, [
-      el("div", { style: { fontWeight: "600" }, text: `${emoji} ${name}` }),
-      el("div", { class: "domain-chip-desc", text: desc }),
-    ]),
-  ]);
+// ── PDF DOWNLOAD ──
+async function downloadPDF(){
+  const status=$("#dl-status");
+  if(status)status.textContent="Generating PDF…";
+  try{
+    const el=$("#report-content");
+    // temporarily force light for PDF
+    const wasDark=S.dark;
+    if(wasDark){document.documentElement.setAttribute("data-theme","light");await new Promise(r=>setTimeout(r,100));}
+    const canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:"#F6F3F0",logging:false});
+    if(wasDark)document.documentElement.setAttribute("data-theme","dark");
+    const{jsPDF}=window.jspdf;
+    const imgW=canvas.width,imgH=canvas.height;
+    const pdfW=210,pdfH=(imgH*pdfW)/imgW; // A4 width in mm
+    const pdf=new jsPDF({orientation:pdfH>297?"p":"p",unit:"mm",format:[pdfW,Math.max(pdfH,297)]});
+    pdf.addImage(canvas.toDataURL("image/png"),0,0,pdfW,pdfH);
+    pdf.save(`NeuroProfile_${S.name||"Report"}_${new Date().toISOString().slice(0,10)}.pdf`);
+    if(status)status.textContent="✓ Downloaded";
+    setTimeout(()=>{if(status)status.textContent=""},3000);
+  }catch(e){
+    console.error(e);
+    if(status)status.textContent="Error generating PDF";
+  }
 }
 
-function featureItem(icon, text) {
-  return el("li", {}, [
-    el("span", { class: "icon", text: icon }),
-    el("span", { text }),
-  ]);
+// ── RENDER: INTRO ──
+function renderIntro(){
+  const app=$("#app");app.innerHTML="";
+  const w=h("div","wrap",[]);
+  // top
+  w.append(h("div","badge au",["NEUROPROFILE"]));
+  const t=document.createElement("h1");t.className="au au1";t.textContent="NeuroProfile";w.append(t);
+  const p1=h("p","sub au au2",["Cognitive Architecture Screener"]);w.append(p1);
+  const p2=h("p","meta au au3",["40 questions · 4 domains · scale 0–10"]);w.append(p2);
+
+  // info box
+  const box=h("div","intro-box au au4",[]);
+  box.append(h("p","",["Self-report screener mapping traits across four cognitive domains."]));
+
+  // domains
+  const dg=h("div","domains",[]);
+  [{c:"autism",e:"🟠",n:"Autism",d:"Pattern depth, structure, sensory"},{c:"adhd",e:"🔴",n:"ADHD",d:"Energy, novelty, working memory"},{c:"giftedness",e:"⚫",n:"Giftedness",d:"Systems, abstraction, synthesis"},{c:"overlap",e:"🟢",n:"Overlap",d:"Shared intensity traits"}].forEach(x=>{
+    const dc=h("div","dom",[]);
+    const dot=h("span","dot",[]);dot.style.background=COL[x.c].m;dc.append(dot);
+    const info=h("div","",[]); info.innerHTML=`${x.e} <b>${x.n}</b><small>${x.d}</small>`;dc.append(info);
+    dg.append(dc);
+  });
+  box.append(dg);
+  box.append(h("div","warn",[ h("span","",["⚠️"]), h("span","",["Not a clinical diagnosis. A reflective profiling tool."]) ]));
+  box.append(h("div","hr",[]));
+
+  // features
+  box.append(h("div","sec-title",[h("span","",["✨"]),h("span","",["What It Does"])]));
+  const fl=h("ul","feat",[]);
+  ["📊 Maps 40 items (0–10)","🧭 Category intensity (0–100%)","🕸 Radar visualization","⚡ Identifies strengths","💥 Flags challenges","🧠 Rule-based profile summary","📄 Downloadable PDF report"].forEach(x=>{
+    const li=document.createElement("li");li.textContent=x;fl.append(li);
+  });
+  box.append(fl);
+  box.append(h("div","hr",[]));
+
+  // profiles
+  box.append(h("div","sec-title",[h("span","",["🧩"]),h("span","",["Possible Profiles"])]));
+  const tg=h("div","tags",[]);
+  ["3e Triple-Exceptional","2e Twice-Exceptional","Gifted","ADHD","Autistic","High-Overlap","Neurotypical","Emerging"].forEach(x=>{tg.append(h("span","tag",[x]))});
+  box.append(tg);
+  w.append(box);
+
+  // pills
+  const pls=h("div","pills au au5",[]);
+  CATS.forEach(c=>{const p=h("span","pill",[c==="overlap"?"Overlap":c.charAt(0).toUpperCase()+c.slice(1)+" · 10Q"]);p.style.background=COL[c].m;pls.append(p)});
+  w.append(pls);
+
+  // name
+  const inp=document.createElement("input");inp.className="name-inp au au5";inp.type="text";inp.placeholder="Your name (optional)";inp.value=S.name;
+  inp.addEventListener("input",e=>S.name=e.target.value);
+  const ic=h("div","",[]); ic.style.textAlign="center"; ic.append(inp); w.append(ic);
+
+  // start
+  const bc=h("div","au au6",[]);bc.style.textAlign="center";
+  const btn=h("button","btn",["BEGIN ASSESSMENT"]);
+  btn.addEventListener("click",()=>{S.scr="quiz";S.ci=0;S.qi=0;render()});
+  bc.append(btn);w.append(bc);
+  w.append(h("p","disc au au6",["For self-reflection only. Does not replace clinical evaluation."]));
+
+  const screen=h("div","screen intro",[w]);
+  app.append(screen);
 }
 
-function profileTag(text) {
-  return el("span", { class: "profile-tag", text });
+// ── RENDER: QUIZ ──
+function renderQuiz(){
+  const app=$("#app");app.innerHTML="";
+  const cat=CATS[S.ci],col=COL[cat],q=Q[cat][S.qi],cv=S.ans[cat]?.[S.qi],tot=totAns(),gq=S.ci*10+S.qi+1;
+  const w=h("div","wrap",[]);
+
+  // progress
+  const pr=h("div","prog-row",[]);
+  const badge=h("span","prog-badge",[CLAB[cat]]);badge.style.background=col.m;pr.append(badge);
+  pr.append(h("span","prog-count",[`${tot}/40`]));w.append(pr);
+  const bar=h("div","prog-bar",[]);
+  const fill=h("div","prog-fill",[]);fill.style.width=`${(tot/40)*100}%`;fill.style.background=col.m;bar.append(fill);w.append(bar);
+
+  // card
+  const card=h("div","q-card",[]);card.id="qcard";
+  const qn=h("div","q-num",[`Q${gq}/40`]);qn.style.color=col.m;card.append(qn);
+  card.append(h("p","q-text",[q]));
+  card.append(h("div","sc-labels",[h("span","",["0 — not at all"]),h("span","",["10 — maximum"])]));
+
+  const btns=h("div","sc-btns",[]);
+  for(let v=0;v<=10;v++){
+    const b=document.createElement("button");b.className="sc-btn"+(cv===v?" sel":"");b.textContent=v;
+    if(cv===v){b.style.background=col.m;b.style.borderColor=col.m;b.style.color="#fff";}
+    b.addEventListener("mouseenter",()=>{if(cv!==v){b.style.background=col.g;b.style.borderColor=col.m}});
+    b.addEventListener("mouseleave",()=>{if(cv!==v){b.style.background="";b.style.borderColor=""}});
+    b.addEventListener("click",()=>{
+      S.ans[cat][S.qi]=v;
+      const c=$("#qcard");if(c)c.classList.add("fading");
+      setTimeout(()=>{if(S.qi<9)S.qi++;else if(S.ci<3){S.ci++;S.qi=0}else S.scr="report";render()},160);
+    });
+    btns.append(b);
+  }
+  card.append(btns);
+
+  // nav
+  const nav=h("div","q-nav",[]);
+  const back=h("button","btn-back",["← Back"]);
+  if(S.ci===0&&S.qi===0)back.disabled=true;
+  back.addEventListener("click",()=>{if(S.qi>0)S.qi--;else if(S.ci>0){S.ci--;S.qi=9}render()});
+  nav.append(back);
+  const dots=h("div","dots",[]);
+  CATS.forEach((c,i)=>{const d=h("div","dot-i",[]);if(i<=S.ci)d.style.background=COL[c].m;dots.append(d)});
+  nav.append(dots);
+  card.append(nav);
+  w.append(card);
+
+  app.append(h("div","screen quiz",[w]));
 }
 
-// ── QUIZ ──────────────────────────────────────────────────────────────
-function renderQuiz() {
-  const root = $("#app");
-  root.innerHTML = "";
-  const cat = CATS[state.catIdx];
-  const col = CAT_COLORS[cat];
-  const q = QUESTIONS[cat][state.qIdx];
-  const curVal = state.answers[cat]?.[state.qIdx];
-  const total = totalAnswered();
-  const globalQ = state.catIdx * 10 + state.qIdx + 1;
+// ── RENDER: REPORT ──
+function renderReport(){
+  const app=$("#app");app.innerHTML="";
+  const sc=scores(),dg=diag(sc),tn=tens(),{st,ch}=strCha(sc),fm=formula(dg),rc=recs(sc,dg),an=analysis(sc);
+  const dc=COL[dg.dm]||COL.giftedness;
+  const now=new Date().toLocaleDateString("en-US",{month:"long",year:"numeric"}).toUpperCase();
 
-  const screen = el("div", { class: "screen quiz-screen" }, [
-    el("div", { class: "container" }, [
-      // Progress
-      el("div", { class: "progress-row" }, [
-        el("span", { class: "progress-badge", style: { background: col.main }, text: CAT_LABELS[cat] }),
-        el("span", { class: "progress-count", text: `${total} / 40` }),
-      ]),
-      el("div", { class: "progress-bar" }, [
-        el("div", { class: "progress-fill", style: { width: `${(total/40)*100}%`, background: col.main } }),
-      ]),
+  const w=h("div","wrap",[]);w.id="report-content";
 
-      // Question card
-      el("div", { class: "question-card anim-fade", id: "qcard" }, [
-        el("div", { class: "q-number", style: { color: col.main }, text: `Q${globalQ} / 40` }),
-        el("p", { class: "q-text", text: q }),
-        el("div", { class: "scale-labels" }, [
-          el("span", { text: "0 — not at all" }),
-          el("span", { text: "10 — maximum" }),
-        ]),
-        el("div", { class: "scale-buttons" }, Array.from({ length: 11 }, (_, v) => {
-          const btn = el("button", {
-            class: `scale-btn${curVal === v ? " selected" : ""}`,
-            text: String(v),
-            style: curVal === v
-              ? { background: col.main, borderColor: col.main, color: "#fff" }
-              : {},
-          });
-          btn.addEventListener("mouseenter", () => {
-            if (curVal !== v) { btn.style.background = col.glow; btn.style.borderColor = col.main; }
-          });
-          btn.addEventListener("mouseleave", () => {
-            if (curVal !== v) { btn.style.background = ""; btn.style.borderColor = ""; }
-          });
-          btn.addEventListener("click", () => {
-            state.answers[cat][state.qIdx] = v;
-            const card = $("#qcard");
-            if (card) card.classList.add("fading");
-            setTimeout(() => {
-              if (state.qIdx < 9) state.qIdx++;
-              else if (state.catIdx < 3) { state.catIdx++; state.qIdx = 0; }
-              else state.screen = "report";
-              render();
-            }, 180);
-          });
-          return btn;
-        })),
+  // header
+  w.append(h("div","rpt-bar au",[`NEUROPROFILE · ${(S.name||"PROFILE").toUpperCase()} · ${now}`]));
+  w.append(h("h1","rpt-title au au1",["NEUROPROFILE"]));
+  const sub=h("p","rpt-sub au au2",[(S.name||"Your")+" — Mind Map"]);sub.style.color=dc.m;w.append(sub);
 
-        // Nav
-        el("div", { class: "quiz-nav" }, [
-          (() => {
-            const btn = el("button", { class: "btn-back", text: "← Back" });
-            if (state.catIdx === 0 && state.qIdx === 0) btn.disabled = true;
-            btn.addEventListener("click", () => {
-              if (state.qIdx > 0) state.qIdx--;
-              else if (state.catIdx > 0) { state.catIdx--; state.qIdx = 9; }
-              render();
-            });
-            return btn;
-          })(),
-          el("div", { class: "cat-dots" }, CATS.map((c, i) =>
-            el("div", { class: "cat-dot", style: { background: i <= state.catIdx ? CAT_COLORS[c].main : "" } })
-          )),
-        ]),
-      ]),
-    ]),
-  ]);
-  root.appendChild(screen);
-}
+  // diagnosis
+  const cd=h("div","card card-diag au au3",[]);cd.style.borderLeftColor=dc.m;
+  const cl=h("div","card-lbl",["PROFILE DIAGNOSIS"]);cl.style.color=dc.m;cd.append(cl);
+  cd.append(h("div","diag-t",[dg.t]));
+  const ds=h("div","diag-s",[dg.s]);ds.style.color=dc.m;cd.append(ds);
+  cd.append(h("div","diag-d",[dg.d]));
+  w.append(cd);
 
-// ── REPORT ────────────────────────────────────────────────────────────
-function renderReport() {
-  const root = $("#app");
-  root.innerHTML = "";
+  // scores
+  const cs=h("div","card au au4",[]);
+  CATS.forEach(c=>{
+    const r=h("div","s-row",[]);
+    r.innerHTML=`<div class="s-hdr"><div><span class="s-lbl" style="color:${COL[c].m}">${c.charAt(0).toUpperCase()+c.slice(1)}</span><span class="s-ans">${nAns(c)}/10</span></div><span class="s-val" style="color:${COL[c].d}">${sc[c]}<span class="of">/100</span></span></div><div class="s-track"><div class="s-fill" style="width:${sc[c]}%;background:linear-gradient(90deg,${COL[c].m},${COL[c].d})"></div></div>`;
+    cs.append(r);
+  });
+  w.append(cs);
 
-  const sc = computeScores();
-  const diag = getDiagnosis(sc);
-  const tens = getTens();
-  const { strengths, challenges } = getStrengthsChallenges(sc);
-  const formula = getFormula(diag);
-  const recs = getRecommendations(sc, diag);
-  const analysis = getDeepAnalysis(sc);
-  const dCol = CAT_COLORS[diag.dom] || CAT_COLORS.giftedness;
-  const now = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }).toUpperCase();
+  // radar
+  const cr=h("div","card card-radar au au5",[]);
+  cr.append(h("div","card-lbl",["RADAR PROFILE"]));
+  cr.append(radar(sc));w.append(cr);
 
-  const children = [
-    // Header bar
-    el("div", { class: "report-header-bar anim-fade-up", text: `NEUROPROFILE · ${state.userName ? state.userName.toUpperCase() : "YOUR PROFILE"} · ${now} · NOT A CLINICAL DIAGNOSIS` }),
-    el("h1", { class: "report-title anim-fade-up stagger-1", text: "NEURODIVERGENT PROFILE" }),
-    el("p", { class: "report-subtitle anim-fade-up stagger-2", style: { color: dCol.main }, text: `${state.userName || "Your"} — Mind Map` }),
-
-    // Diagnosis
-    el("div", { class: "card card-diagnosis anim-fade-up stagger-3", style: { borderLeftColor: dCol.main } }, [
-      el("div", { class: "card-label", style: { color: dCol.main }, text: "PROFILE DIAGNOSIS" }),
-      el("h2", { class: "diagnosis-title", text: diag.title }),
-      el("p", { class: "diagnosis-subtitle", style: { color: dCol.main }, text: diag.sub }),
-      el("p", { class: "diagnosis-desc", text: diag.desc }),
-    ]),
-
-    // Scores
-    el("div", { class: "card anim-fade-up stagger-4" }, CATS.map(c => {
-      const wrapper = el("div", { class: "score-row" });
-      wrapper.innerHTML = `
-        <div class="score-header">
-          <div><span class="score-label" style="color:${CAT_COLORS[c].main}">${c.charAt(0).toUpperCase()+c.slice(1)}</span><span class="score-answered">${answeredIn(c)}/10 answered</span></div>
-          <span class="score-value" style="color:${CAT_COLORS[c].dark}">${sc[c]}<span class="of"> /100</span></span>
-        </div>
-        <div class="score-track"><div class="score-fill" style="width:${sc[c]}%;background:linear-gradient(90deg,${CAT_COLORS[c].main},${CAT_COLORS[c].dark})"></div></div>
-      `;
-      return wrapper;
-    })),
-
-    // Radar
-    (() => {
-      const card = el("div", { class: "card card-radar anim-fade-up stagger-5" }, [
-        el("div", { class: "card-label", style: { color: "var(--text-muted)" }, text: "RADAR PROFILE" }),
-      ]);
-      card.appendChild(buildRadar(sc));
-      return card;
-    })(),
-  ];
-
-  // Tens
-  if (tens.length > 0) {
-    children.push(el("div", { class: "card anim-fade-up stagger-6" }, [
-      el("div", { class: "card-label", style: { color: dCol.main }, text: "YOUR TENS — Traits at Maximum (10/10)" }),
-      ...tens.map(t => el("div", { class: "ten-row" }, [
-        el("span", { class: "ten-badge", style: { background: CAT_COLORS[t.cat].main }, text: "10" }),
-        el("span", { class: "ten-trait", text: t.trait }),
-        el("span", { class: "ten-cat", style: { color: CAT_COLORS[t.cat].main }, text: t.cat }),
-      ])),
-    ]));
+  // tens
+  if(tn.length){
+    const ct=h("div","card au au5",[]);
+    const tl=h("div","card-lbl",["TENS — Maximum (10/10)"]);tl.style.color=dc.m;ct.append(tl);
+    tn.forEach(t=>{
+      const r=h("div","ten",[]);
+      const b=h("span","ten-b",["10"]);b.style.background=COL[t.c].m;r.append(b);
+      r.append(h("span","ten-t",[t.tr]));
+      const tc=h("span","ten-c",[t.c]);tc.style.color=COL[t.c].m;r.append(tc);
+      ct.append(r);
+    });
+    w.append(ct);
   }
 
-  // Strengths / Challenges
-  if (strengths.length > 0 || challenges.length > 0) {
-    const grid = el("div", { class: "sc-grid anim-fade-up stagger-7" });
-    if (strengths.length > 0) {
-      grid.appendChild(el("div", { class: "sc-card sc-card-strength" }, [
-        el("div", { class: "card-label", style: { color: "var(--strength-accent)" }, text: "STRENGTHS" }),
-        ...strengths.map(s => el("div", { class: "sc-item" }, [
-          el("span", { class: "sc-icon", style: { color: CAT_COLORS[s.c].main }, text: "◆" }),
-          el("span", { class: "sc-text", text: s.t }),
-        ])),
-      ]));
-    }
-    if (challenges.length > 0) {
-      grid.appendChild(el("div", { class: "sc-card sc-card-challenge" }, [
-        el("div", { class: "card-label", style: { color: "var(--challenge-accent)" }, text: "CHALLENGES" }),
-        ...challenges.map(c => el("div", { class: "sc-item" }, [
-          el("span", { class: "sc-icon", style: { color: CAT_COLORS[c.c].main }, text: "◇" }),
-          el("span", { class: "sc-text", text: c.t }),
-        ])),
-      ]));
-    }
-    children.push(grid);
-  }
-
-  // Formula
-  children.push(el("div", { class: "card card-formula anim-fade-up stagger-7" }, [
-    el("div", { class: "card-label", style: { color: dCol.main }, text: "YOUR FORMULA" }),
-    el("p", { class: "formula-text", text: formula.f }),
-    el("p", { class: "formula-meaning", text: formula.m }),
-  ]));
-
-  // Deep Analysis
-  children.push(el("div", { class: "card anim-fade-up stagger-8" }, [
-    el("div", { class: "card-label", style: { color: "var(--text-muted)" }, text: "DEEP ANALYSIS — What This Means For You" }),
-    ...analysis.map(a => el("div", { class: "analysis-section" }, [
-      el("h3", { class: "analysis-title", text: a.t }),
-      el("p", { class: "analysis-text", text: a.d }),
-    ])),
-  ]));
-
-  // Recommendations
-  children.push(el("div", { class: "card anim-fade-up stagger-8" }, [
-    el("div", { class: "card-label", style: { color: dCol.main }, text: "RECOMMENDATIONS — Based on Your Profile" }),
-    ...recs.map(r => el("div", { class: "rec-item", style: { borderLeftColor: dCol.main + "30" } }, [
-      el("h3", { class: "rec-title", text: r.t }),
-      el("p", { class: "rec-text", text: r.d }),
-    ])),
-  ]));
-
-  // Retake
-  children.push(el("div", { class: "report-footer anim-fade-up stagger-8" }, [
-    (() => {
-      const btn = el("button", { class: "btn-retake", style: { background: dCol.main, boxShadow: `0 4px 14px ${dCol.main}40` }, text: "RETAKE ASSESSMENT" });
-      btn.addEventListener("click", () => {
-        state.screen = "intro"; state.catIdx = 0; state.qIdx = 0;
-        state.answers = { autism: {}, adhd: {}, giftedness: {}, overlap: {} };
-        render();
+  // strengths / challenges
+  if(st.length||ch.length){
+    const g=h("div","sc-grid au au6",[]);
+    if(st.length){
+      const c=h("div","sc-card sc-str",[]);
+      const l=h("div","card-lbl",["STRENGTHS"]);l.style.color="var(--green)";c.append(l);
+      st.forEach(s=>{
+        const i=h("div","sc-i",[]);
+        const ic=h("span","sc-icon",["◆"]);ic.style.color=COL[s.c].m;i.append(ic);
+        i.append(h("span","sc-tx",[s.x]));c.append(i);
       });
-      return btn;
-    })(),
-    el("p", { class: "disclaimer", text: `This is not a clinical diagnosis · ${new Date().getFullYear()}` }),
-  ]));
-
-  const screen = el("div", { class: "screen report-screen" }, [
-    el("div", { class: "container-wide" }, children),
-  ]);
-  root.appendChild(screen);
-}
-
-// ── RENDER DISPATCH ──────────────────────────────────────────────────
-function render() {
-  // Always ensure theme toggle exists
-  if (!$(".theme-toggle")) {
-    const btn = el("button", { class: "theme-toggle", text: state.darkMode ? "☀️" : "🌙" });
-    btn.addEventListener("click", toggleTheme);
-    document.body.appendChild(btn);
+      g.append(c);
+    }
+    if(ch.length){
+      const c=h("div","sc-card sc-cha",[]);
+      const l=h("div","card-lbl",["CHALLENGES"]);l.style.color="var(--pink)";c.append(l);
+      ch.forEach(s=>{
+        const i=h("div","sc-i",[]);
+        const ic=h("span","sc-icon",["◇"]);ic.style.color=COL[s.c].m;i.append(ic);
+        i.append(h("span","sc-tx",[s.x]));c.append(i);
+      });
+      g.append(c);
+    }
+    w.append(g);
   }
 
-  if (state.screen === "intro") renderIntro();
-  else if (state.screen === "quiz") renderQuiz();
-  else renderReport();
+  // formula
+  const cf=h("div","card card-f au au6",[]);
+  const fl=h("div","card-lbl",["YOUR FORMULA"]);fl.style.color=dc.m;cf.append(fl);
+  cf.append(h("p","f-text",[fm.f]));cf.append(h("p","f-mean",[fm.m]));w.append(cf);
 
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  // analysis
+  const ca=h("div","card au au6",[]);
+  ca.append(h("div","card-lbl",["DEEP ANALYSIS"]));
+  an.forEach(a=>{const s=h("div","an-sec",[]);s.append(h("div","an-t",[a.t]));s.append(h("div","an-d",[a.d]));ca.append(s)});
+  w.append(ca);
+
+  // recommendations
+  const crec=h("div","card au au6",[]);
+  const rl=h("div","card-lbl",["RECOMMENDATIONS"]);rl.style.color=dc.m;crec.append(rl);
+  rc.forEach(r=>{const d=h("div","rec",[]);d.style.borderLeftColor=dc.m+"30";d.append(h("div","rec-t",[r.t]));d.append(h("div","rec-d",[r.d]));crec.append(d)});
+  w.append(crec);
+
+  // footer (outside report-content so not captured in PDF)
+  const foot=h("div","rpt-foot au au6",[]);
+
+  const dlBtn=h("button","btn-dl",["↓ DOWNLOAD PDF"]);
+  dlBtn.style.background=dc.m;dlBtn.style.boxShadow=`0 4px 14px ${dc.m}40`;
+  dlBtn.addEventListener("click",downloadPDF);
+  foot.append(dlBtn);
+
+  const retry=h("button","btn-ghost",["RETAKE"]);
+  retry.addEventListener("click",()=>{S.scr="intro";S.ci=0;S.qi=0;S.ans={autism:{},adhd:{},giftedness:{},overlap:{}};render()});
+  foot.append(retry);
+
+  foot.append(h("div","dl-status",[]));
+  const dlStatus=document.createElement("div");dlStatus.className="dl-status";dlStatus.id="dl-status";foot.append(dlStatus);
+
+  foot.append(h("p","disc",["Not a clinical diagnosis · "+new Date().getFullYear()]));
+
+  const screen=h("div","screen report",[w,foot]);
+  app.append(screen);
 }
 
-// ── BOOT ──────────────────────────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", render);
+// ── DISPATCH ──
+function render(){
+  if(S.scr==="intro")renderIntro();else if(S.scr==="quiz")renderQuiz();else renderReport();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+document.addEventListener("DOMContentLoaded",render);
