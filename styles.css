@@ -821,7 +821,7 @@ body {
 }
 
 .q-item {
-    padding: var(--s-7) 0;
+    padding: var(--s-8) 0;
     border-bottom: 1px solid var(--brd2);
 }
 
@@ -843,7 +843,7 @@ body {
     font-size: clamp(1rem, .95rem + .4vw, 1.15rem);
     font-weight: 600;
     line-height: 1.5;
-    margin-bottom: var(--s-4);
+    margin-bottom: var(--s-6);
 }
 
 /* Scale hint */
@@ -889,7 +889,7 @@ body {
 .scale-circle {
     width: 36px;
     height: 36px;
-    border-radius: 50%;
+    border-radius: 10px;
     border: 2.5px solid #bbb;
     background: transparent;
 }
@@ -913,8 +913,9 @@ body {
 }
 
 @media (max-width: 768px) {
-    .scale-circle { width: 28px; height: 28px; }
-    .scale-row { gap: 4px; }
+    .scale-circle { width: 28px; height: 28px; border-radius: 8px; }
+    .scale-row { gap: 3px; }
+    .scale-label { font-size: .6rem; }
 }
 
 /* Score buttons wrapper — no longer needed */

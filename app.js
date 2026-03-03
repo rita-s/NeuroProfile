@@ -1,5 +1,5 @@
-/* ── NEUROPROFILE — app.js v22 ─────────────────────────────────────── */
-console.log("NeuroProfile v22 loaded");
+/* ── NEUROPROFILE — app.js v23 ─────────────────────────────────────── */
+console.log("NeuroProfile v23 loaded");
 const CATS=["autism","adhd","giftedness","overlap"];
 
 /* Colors: muted gold, purple, teal, sage — matching buttons/dots/badges */
@@ -729,8 +729,7 @@ function renderQuiz(){
         // Gradient from red/orange through grey to green/teal
         const colors=["#e8a0a0","#e8b88a","#d4c4a0","#c0c8a0","#a8c8a0","#bbb","#90c4a8","#80c0a8","#70bca8","#60b8a8","#4eb8a8"];
         circle.style.borderColor=colors[v];
-        if(v<=2)circle.style.background=colors[v]+"30";
-        else if(v>=8)circle.style.background=colors[v]+"30";
+        circle.style.background=colors[v]+"25";
         item.append(circle);
         item.append(h("span","scale-label",[v.toString()]));
         scaleRow.append(item);
@@ -754,17 +753,17 @@ function renderQuiz(){
         const qcard=h("div","q-item",[]);
         qcard.append(h("div","q-text",[qText]));
         const btns=h("div","sc-btns"+(isMob?" sc-btns-5":""),[]);
-        const steps=isMob?mob5:Array.from({length:11},(_,i)=>({v:i,l:String(i)}));
-        steps.forEach(s=>{
+        const btnSteps=isMob?mob5:Array.from({length:11},(_,i)=>({v:i,l:String(i)}));
+        btnSteps.forEach(s=>{
             const b=document.createElement("button");
             b.className="sc-btn"+(cv===s.v?" sel":"");
             b.style.borderColor=btnColors[s.v];
-            b.style.background=btnColors[s.v]+"20";
+            b.style.background=btnColors[s.v]+"28";
             if(cv===s.v){b.style.background=col.m;b.style.borderColor=col.m;b.style.color="#fff";}
             const num=document.createElement("span");num.className="sc-btn-num";num.textContent=s.l;b.append(num);
             if(btnLabels[s.v]){const sub=document.createElement("span");sub.className="sc-btn-sub";sub.textContent=btnLabels[s.v];b.append(sub);}
             b.addEventListener("mouseenter",()=>{if(S.ans[cat]?.[qi]!==s.v){b.style.background=btnColors[s.v]+"50";b.style.borderColor=col.m}});
-            b.addEventListener("mouseleave",()=>{if(S.ans[cat]?.[qi]!==s.v){b.style.background=btnColors[s.v]+"20";b.style.borderColor=btnColors[s.v]}});
+            b.addEventListener("mouseleave",()=>{if(S.ans[cat]?.[qi]!==s.v){b.style.background=btnColors[s.v]+"28";b.style.borderColor=btnColors[s.v]}});
             b.addEventListener("click",()=>{S.ans[cat][qi]=s.v;render()});
             btns.append(b);
         });
