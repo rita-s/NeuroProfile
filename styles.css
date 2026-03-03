@@ -1105,6 +1105,7 @@ body {
 .r-grid { fill: none; stroke: var(--brd2); stroke-width: .5; }
 .r-grid-o { fill: none; stroke: var(--brd); stroke-width: 1; }
 .r-axis { stroke: var(--brd2); stroke-width: .4; }
+.r-square { stroke: var(--brd); stroke-width: 1; }
 
 .r-shape {
     fill: var(--radar-fill);
@@ -1117,8 +1118,9 @@ body {
 
 .r-dot { stroke: var(--card-solid); stroke-width: 2.5; }
 .r-label-dot { opacity: 0.85; }
-.r-lbl { font-size: 10px; font-weight: 800; letter-spacing: 1.2px; }
-.r-val { font-size: 17px; font-weight: 900; }
+.r-lbl { font-size: 11px; font-weight: 800; letter-spacing: 1.2px; }
+.r-val { font-size: 16px; font-weight: 900; }
+.r-domain-lbl { font-size: 15px; font-weight: 800; letter-spacing: 2px; opacity: 0.55; }
 
 /* Tens */
 .ten {

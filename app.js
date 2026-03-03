@@ -144,71 +144,119 @@ function scoreDesc(cat,val){
 
 // ── RADAR SVG ──
 function radar(sc){
-  const sz=500,cx=sz/2,cy=sz/2,mr=sz*.30;
-  // 8 axes: 2 sub-categories per domain, evenly spaced at 45deg
+  const sz=540,cx=sz/2,cy=sz/2;
+  // Square frame
+  const sqSz=sz*0.52, sqHalf=sqSz/2;
+  const sqL=cx-sqHalf, sqT=cy-sqHalf, sqR=cx+sqHalf, sqB=cy+sqHalf;
+
+  // 8 axes at 45-degree intervals
   const axes=[
-    {k:"giftedness",sub:"Systems",a:-90,color:COL.giftedness},
-    {k:"giftedness",sub:"Prediction",a:-45,color:COL.giftedness},
-    {k:"overlap",sub:"Intensity",a:0,color:COL.overlap},
-    {k:"overlap",sub:"Curiosity",a:45,color:COL.overlap},
-    {k:"adhd",sub:"Novelty",a:90,color:COL.adhd},
-    {k:"adhd",sub:"Speed",a:135,color:COL.adhd},
-    {k:"autism",sub:"Patterns",a:180,color:COL.autism},
-    {k:"autism",sub:"Focus",a:225,color:COL.autism},
+    {k:"giftedness",sub:"Systems",a:-90,     domain:true, dLabel:"GIFTEDNESS"},
+    {k:"giftedness",sub:"Prediction",a:-45,  domain:false},
+    {k:"overlap",   sub:"Intensity",a:0,     domain:true, dLabel:"OVERLAP"},
+    {k:"overlap",   sub:"Curiosity",a:45,    domain:false},
+    {k:"adhd",      sub:"Novelty",a:90,      domain:true, dLabel:"ADHD"},
+    {k:"adhd",      sub:"Speed",a:135,       domain:false},
+    {k:"autism",    sub:"Patterns",a:180,    domain:true, dLabel:"AUTISM"},
+    {k:"autism",    sub:"Focus",a:225,       domain:false},
   ];
-  const xy=(deg,r)=>[cx+r*Math.cos(deg*Math.PI/180),cy+r*Math.sin(deg*Math.PI/180)];
+
+  const rad=d=>d*Math.PI/180;
+  const xy=(deg,r)=>[cx+r*Math.cos(rad(deg)),cy+r*Math.sin(rad(deg))];
+  const mr=sqHalf*0.82; // grid radius fits inside square
+
   const svg=hs("svg",{viewBox:`0 0 ${sz} ${sz}`,class:"radar-svg"});
 
-  // Grid rings (octagonal)
-  [20,40,60,80,100].forEach(lv=>{
-    const pts=axes.map(a=>xy(a.a,(lv/100)*mr));
-    svg.append(hs("polygon",{points:pts.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(" "),class:lv===100?"r-grid-o":"r-grid"}));
+  // Square border
+  svg.append(hs("rect",{x:sqL,y:sqT,width:sqSz,height:sqSz,fill:"none",stroke:"var(--brd)",class:"r-square","stroke-width":"1"}));
+
+  // Octagonal grid rings
+  [.25,.5,.75,1].forEach(f=>{
+    const pts=axes.map(a=>xy(a.a,mr*f));
+    svg.append(hs("polygon",{points:pts.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(" "),class:f===1?"r-grid-o":"r-grid"}));
   });
 
-  // Dashed axis lines
+  // Dashed axis lines from center to square edge
   axes.forEach(a=>{
-    const[ex,ey]=xy(a.a,mr);
-    svg.append(hs("line",{x1:cx,y1:cy,x2:ex.toFixed(1),y2:ey.toFixed(1),class:"r-axis","stroke-dasharray":"3,3"}));
+    // Find intersection with square
+    const cos=Math.cos(rad(a.a)), sin=Math.sin(rad(a.a));
+    let t=Infinity;
+    if(cos!==0){const t1=(sqHalf)/Math.abs(cos);t=Math.min(t,t1);}
+    if(sin!==0){const t2=(sqHalf)/Math.abs(sin);t=Math.min(t,t2);}
+    const ex=cx+cos*t, ey=cy+sin*t;
+    svg.append(hs("line",{x1:cx,y1:cy,x2:ex.toFixed(1),y2:ey.toFixed(1),class:"r-axis","stroke-dasharray":"4,4"}));
   });
 
-  // Data shape — use domain score + variation for sub-axes
+  // Domain labels INSIDE the grid (rotated along axes, between center and edge)
+  axes.forEach(a=>{
+    if(!a.domain)return;
+    const labelR=mr*0.45;
+    const[lx,ly]=xy(a.a,labelR);
+    let rotation=a.a;
+    if(rotation>90||rotation<-90)rotation+=180; // keep text readable
+    const t=hs("text",{
+      x:lx.toFixed(1),y:ly.toFixed(1),
+      "text-anchor":"middle","dominant-baseline":"middle",
+      transform:`rotate(${rotation},${lx.toFixed(1)},${ly.toFixed(1)})`,
+      class:"r-domain-lbl",fill:COL[a.k].hex
+    });
+    t.textContent=a.dLabel;svg.append(t);
+  });
+
+  // Data shape
   const subScores=axes.map(a=>{
     const base=sc[a.k];
-    // Create slight variation between the 2 sub-axes of each domain
+    const v=(cat,i)=>S.ans[cat]?.[i]??5;
     const idx=axes.filter(x=>x.k===a.k).indexOf(a);
-    const v=(c,i)=>S.ans[a.k]?.[i]??5;
     let subVal;
     if(a.k==="giftedness"){subVal=idx===0?v("giftedness",0)*10:v("giftedness",9)*10;}
     else if(a.k==="adhd"){subVal=idx===0?v("adhd",1)*10:v("adhd",4)*10;}
     else if(a.k==="autism"){subVal=idx===0?v("autism",3)*10:v("autism",1)*10;}
     else{subVal=idx===0?v("overlap",1)*10:v("overlap",6)*10;}
-    // Blend: 60% domain score + 40% sub-question score
     return Math.min(100,Math.max(0,Math.round(base*0.6+subVal*0.4)));
   });
 
   const dp=axes.map((a,i)=>xy(a.a,(subScores[i]/100)*mr));
   svg.append(hs("polygon",{points:dp.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(" "),class:"r-shape"}));
 
-  // Data dots
+  // Data dots on shape
   dp.forEach(([x,y],i)=>{
-    svg.append(hs("circle",{cx:x.toFixed(1),cy:y.toFixed(1),r:"5",fill:axes[i].color.hex,class:"r-dot"}));
+    svg.append(hs("circle",{cx:x.toFixed(1),cy:y.toFixed(1),r:"4.5",fill:COL[axes[i].k].hex,class:"r-dot"}));
   });
 
-  // Labels outside
+  // Outside labels: sub-name + dot, positioned outside the square
   axes.forEach((a,i)=>{
-    const[lx,ly]=xy(a.a,mr+48);
-    // Label dot
-    svg.append(hs("circle",{cx:lx.toFixed(1),cy:(ly-10).toFixed(1),r:"5",fill:a.color.hex,class:"r-label-dot"}));
-    // Sub-category name
-    const t1=hs("text",{x:lx.toFixed(1),y:(ly+4).toFixed(1),"text-anchor":"middle",class:"r-lbl",fill:a.color.hex});
-    t1.textContent=a.sub.toUpperCase();svg.append(t1);
-  });
+    const cos=Math.cos(rad(a.a)), sin=Math.sin(rad(a.a));
+    // Position outside square
+    let t=Infinity;
+    if(cos!==0)t=Math.min(t,(sqHalf)/Math.abs(cos));
+    if(sin!==0)t=Math.min(t,(sqHalf)/Math.abs(sin));
+    const edgeX=cx+cos*t, edgeY=cy+sin*t;
+    const offset=42;
+    const lx=cx+cos*(t+offset), ly=cy+sin*(t+offset);
 
-  // Domain scores at the 4 cardinal positions (bigger, outside the sub-labels)
-  [{k:"giftedness",a:-90},{k:"overlap",a:0},{k:"adhd",a:90},{k:"autism",a:180}].forEach(d=>{
-    const[lx,ly]=xy(d.a,mr+72);
-    const t=hs("text",{x:lx.toFixed(1),y:ly.toFixed(1),"text-anchor":"middle",class:"r-val",fill:COL[d.k].hexD});
-    t.textContent=sc[d.k]+"%";svg.append(t);
+    // Dot
+    svg.append(hs("circle",{cx:lx.toFixed(1),cy:ly.toFixed(1),r:"6",fill:COL[a.k].hex,class:"r-label-dot"}));
+
+    // Sub-label
+    let anchor="middle",dx=0,dy=16;
+    if(Math.abs(cos)>0.5&&cos>0){anchor="left";dx=10;dy=4;}
+    if(Math.abs(cos)>0.5&&cos<0){anchor="right";dx=-10;dy=4;}
+
+    const t1=hs("text",{
+      x:(lx+dx).toFixed(1),y:(ly+dy).toFixed(1),
+      "text-anchor":anchor,class:"r-lbl",fill:COL[a.k].hex
+    });
+    t1.textContent=a.sub.toUpperCase();svg.append(t1);
+
+    // Domain % only at cardinal positions
+    if(a.domain){
+      const t2=hs("text",{
+        x:(lx+dx).toFixed(1),y:(ly+dy+14).toFixed(1),
+        "text-anchor":anchor,class:"r-val",fill:COL[a.k].hexD
+      });
+      t2.textContent=sc[a.k]+"%";svg.append(t2);
+    }
   });
 
   return svg;
