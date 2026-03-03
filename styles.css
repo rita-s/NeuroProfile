@@ -215,8 +215,8 @@ body {
 
 .theme-toggle {
     position: fixed;
-    top: 16px;
-    right: 16px;
+    top: 18px;
+    right: 20px;
     z-index: 200;
     width: 42px;
     height: 42px;
@@ -270,7 +270,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    padding: 0;
+    padding: 0 clamp(16px, 4vw, 48px);
 }
 
 .wrap {
@@ -1098,27 +1098,27 @@ body {
 
 .radar-svg {
     width: 100%;
-    max-width: 560px;
+    max-width: 520px;
     margin: 0 auto;
 }
 
-.r-grid { fill: none; stroke: var(--brd2); stroke-width: .6; }
-.r-grid-o { fill: none; stroke: var(--brd); stroke-width: 1.2; }
-.r-axis { stroke: var(--brd2); stroke-width: .5; }
+.r-grid { fill: none; stroke: var(--brd2); stroke-width: .5; }
+.r-grid-o { fill: none; stroke: var(--brd); stroke-width: 1; }
+.r-axis { stroke: var(--brd2); stroke-width: .4; }
 
 .r-shape {
     fill: var(--radar-fill);
     stroke: var(--radar-stroke);
     stroke-width: 2.5;
     stroke-linejoin: round;
-    stroke-dasharray: 900;
+    stroke-dasharray: 1200;
     animation: draw 1s ease both;
 }
 
-.r-dot { stroke: var(--card-solid); stroke-width: 3; }
+.r-dot { stroke: var(--card-solid); stroke-width: 2.5; }
 .r-label-dot { opacity: 0.85; }
-.r-lbl { font-size: 12px; font-weight: 800; letter-spacing: 1.5px; }
-.r-val { font-size: 18px; font-weight: 900; }
+.r-lbl { font-size: 10px; font-weight: 800; letter-spacing: 1.2px; }
+.r-val { font-size: 17px; font-weight: 900; }
 
 /* Tens */
 .ten {
@@ -1302,11 +1302,11 @@ body {
 /* Footer */
 .rpt-foot {
     text-align: center;
-    padding-top: var(--s-8);
+    padding-top: var(--s-10);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
 }
 
 .btn-dl {
@@ -1317,7 +1317,7 @@ body {
     color: #fff !important;
     background: #020816 !important;
     border: none;
-    padding: 15px 40px;
+    padding: 16px 40px;
     border-radius: 14px;
     font-size: .82rem;
     font-weight: 700;
@@ -1326,7 +1326,7 @@ body {
     cursor: pointer;
     box-shadow: var(--shadow-btn);
     transition: transform var(--t), box-shadow var(--t);
-    max-width: 320px;
+    max-width: 340px;
     width: 100%;
 }
 
@@ -1346,7 +1346,7 @@ body {
     background: none;
     border: 1.5px solid var(--brd);
     color: var(--tx2);
-    padding: 13px 34px;
+    padding: 15px 40px;
     border-radius: 14px;
     font-size: .82rem;
     font-weight: 700;
@@ -1354,7 +1354,7 @@ body {
     text-transform: uppercase;
     cursor: pointer;
     transition: transform var(--t-fast), border-color var(--t), color var(--t);
-    max-width: 240px;
+    max-width: 340px;
     width: 100%;
 }
 
