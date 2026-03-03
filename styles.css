@@ -854,40 +854,79 @@ body {
     padding-top: var(--s-4);
 }
 
-/* Score buttons wrapper with anchor labels */
-.sc-btns-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+/* Scale legend */
+.scale-legend {
+    text-align: center;
+    margin: var(--s-6) 0 var(--s-4);
+    padding: 20px;
+    background: var(--card);
+    border-radius: 20px;
+    box-shadow: var(--shadow-1);
 }
 
-.sc-anchor {
-    font-size: .72rem;
+.scale-legend-title {
+    font-size: var(--fs-0);
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--tx);
+}
+
+.scale-row {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.scale-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.scale-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2.5px solid #bbb;
+    background: transparent;
+}
+
+.scale-label {
+    font-size: .7rem;
+    font-weight: 700;
+    color: var(--tx3);
+}
+
+.scale-ends {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 8px;
+}
+
+.scale-end-l, .scale-end-r {
+    font-size: .75rem;
     font-weight: 600;
     color: var(--tx3);
-    white-space: nowrap;
-    flex-shrink: 0;
-    letter-spacing: 0.3px;
 }
-
-.sc-anchor-l { min-width: 70px; text-align: right; }
-.sc-anchor-r { min-width: 70px; text-align: left; }
 
 @media (max-width: 768px) {
-    .sc-btns-wrap { flex-wrap: wrap; justify-content: center; gap: 6px; }
-    .sc-anchor { font-size: .65rem; min-width: auto; }
-    .sc-anchor-l { order: 0; text-align: left; }
-    .sc-anchor-r { order: 2; text-align: right; }
-    .sc-btns { order: 1; width: 100%; }
+    .scale-circle { width: 28px; height: 28px; }
+    .scale-row { gap: 4px; }
 }
+
+/* Score buttons wrapper — no longer needed */
+.sc-btns-wrap { display: contents; }
+.sc-anchor { display: none; }
 
 /* Score buttons — 11 in one row on desktop, 6 on mobile */
 .sc-btns {
     display: grid;
     grid-template-columns: repeat(11, 1fr);
     gap: 5px;
-    flex: 1;
     max-width: 560px;
+    flex: 1;
 }
 
 .sc-btn {

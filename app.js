@@ -1,5 +1,5 @@
-/* ── NEUROPROFILE — app.js v18 ─────────────────────────────────────── */
-console.log("NeuroProfile v18 loaded");
+/* ── NEUROPROFILE — app.js v20 ─────────────────────────────────────── */
+console.log("NeuroProfile v20 loaded");
 const CATS=["autism","adhd","giftedness","overlap"];
 
 /* Colors: muted gold, purple, teal, sage — matching buttons/dots/badges */
@@ -145,116 +145,111 @@ function scoreDesc(cat,val){
 
 // ── RADAR SVG ──
 function radar(sc){
-    // Exact port of React reference design
-    const W=1000,H=1120;
-    const SL=230,ST=220,SW=540,SH=540;
-    const SR=SL+SW,SB=ST+SH;
-    const CX=SL+SW/2,CY=ST+SH/2;
-    const R=250;
+    // Compact viewBox — chart fills the space
+    const W=600,H=680;
+    const CX=W/2,CY=280;
+    const R=170; // octagon radius
+    const sqH=R*1.1; // square half-size
+    const SL=CX-sqH,ST=CY-sqH,SW=sqH*2;
+    const SR=SL+SW,SB=ST+SW;
+
     const isDark=S.dark;
     const DOT_COL="#B48E4E";
     const BLUE_S=isDark?"#5B8FD7":"#2B5EA7";
     const BLUE_F=isDark?"rgba(91,143,215,0.08)":"rgba(43,94,167,0.04)";
     const DARK=isDark?"#6A6D72":"#9A9DA1";
     const LIGHT=isDark?"#3A3D42":"#B4B6BA";
-    const TXT=isDark?"#c8c8cc":"#444";
+    const TXT=isDark?"#d0d0d4":"#333";
     const GRN=isDark?"#5CB85C":"#3B8C3B";
     const BAR_BG=isDark?"#1a1c26":"#fafafa";
-    const BAR_BORDER=isDark?"#333":"#ddd";
-    const BAR_TXT=isDark?"#999":"#666";
+    const BAR_BORDER=isDark?"#444":"#ccc";
+    const BAR_TXT=isDark?"#aaa":"#555";
 
     const pol=(a,r)=>{const rd=((a-90)*Math.PI)/180;return[CX+r*Math.cos(rd),CY+r*Math.sin(rd)];};
-    const octPath=r=>{const pts=[];for(let a=0;a<360;a+=45)pts.push(pol(a,r));return pts.map((p,i)=>`${i===0?"M":"L"}${p[0]},${p[1]}`).join(" ")+"Z";};
+    const octPath=r=>{const pts=[];for(let a=0;a<360;a+=45)pts.push(pol(a,r));return pts.map((p,i)=>`${i===0?"M":"L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ")+"Z";};
     const angles=[0,45,90,135,180,225,270,315];
 
-    // Map quiz answers to 8 sub-scores (0-10)
     const v=(cat,i)=>S.ans[cat]?.[i]??5;
     const blend=(cat,qi)=>Math.min(10,Math.max(0,Math.round(sc[cat]*0.06+v(cat,qi)*0.4)));
     const radarScores=[
-        blend("giftedness",0),  // Systems
-        blend("giftedness",9),  // Prediction
-        blend("overlap",1),     // Intensity
-        blend("overlap",6),     // Curiosity
-        blend("adhd",1),        // Novelty
-        blend("adhd",4),        // Speed
-        blend("autism",3),      // Patterns
-        blend("autism",1),      // Focus
+        blend("giftedness",0),blend("giftedness",9),
+        blend("overlap",1),blend("overlap",6),
+        blend("adhd",1),blend("adhd",4),
+        blend("autism",3),blend("autism",1),
     ];
     const radarPts=radarScores.map((val,i)=>pol(angles[i],R*(val/10)));
-    const radarPath=radarPts.map((p,i)=>`${i===0?"M":"L"}${p[0]},${p[1]}`).join(" ")+"Z";
+    const radarPath=radarPts.map((p,i)=>`${i===0?"M":"L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ")+"Z";
 
-    // 8 outer label positions (identical to reference)
+    // Outer labels — tight to square
+    const oD=50; // offset from square edge
     const outer=[
-        {label:"SYSTEMS",   cx:CX,    cy:ST-70},
-        {label:"PREDICTION",cx:SR+60, cy:ST-60},
-        {label:"INTENSITY", cx:SR+70, cy:CY},
-        {label:"CURIOSITY", cx:SR+60, cy:SB+60},
-        {label:"NOVELTY",   cx:CX,    cy:SB+85},
-        {label:"SPEED",     cx:SL-60, cy:SB+60},
-        {label:"PATTERNS",  cx:SL-70, cy:CY},
-        {label:"FOCUS",     cx:SL-60, cy:ST-60},
+        {label:"SYSTEMS",   cx:CX,     cy:ST-oD},
+        {label:"PREDICTION",cx:SR+oD-10,cy:ST-oD+15},
+        {label:"INTENSITY", cx:SR+oD,  cy:CY},
+        {label:"CURIOSITY", cx:SR+oD-10,cy:SB+oD-15},
+        {label:"NOVELTY",   cx:CX,     cy:SB+oD+5},
+        {label:"SPEED",     cx:SL-oD+10,cy:SB+oD-15},
+        {label:"PATTERNS",  cx:SL-oD,  cy:CY},
+        {label:"FOCUS",     cx:SL-oD+10,cy:ST-oD+15},
     ];
     const labelPos=[
-        {dy:-38,dx:0,anchor:"middle"},
-        {dy:-36,dx:0,anchor:"middle"},
-        {dy:0,dx:34,anchor:"start"},
-        {dy:36,dx:0,anchor:"middle"},
-        {dy:40,dx:0,anchor:"middle"},
-        {dy:36,dx:0,anchor:"middle"},
-        {dy:0,dx:-34,anchor:"end"},
-        {dy:-36,dx:0,anchor:"middle"},
+        {dy:-24,dx:0,anchor:"middle"},
+        {dy:-22,dx:0,anchor:"middle"},
+        {dy:0,dx:22,anchor:"start"},
+        {dy:22,dx:0,anchor:"middle"},
+        {dy:26,dx:0,anchor:"middle"},
+        {dy:22,dx:0,anchor:"middle"},
+        {dy:0,dx:-22,anchor:"end"},
+        {dy:-22,dx:0,anchor:"middle"},
     ];
 
     const svg=hs("svg",{viewBox:`0 0 ${W} ${H}`,class:"radar-svg"});
 
-    // 8 dashed lines from center to outer labels
+    // Dashed lines
     outer.forEach(d=>{
-        svg.append(hs("line",{x1:CX,y1:CY,x2:d.cx,y2:d.cy,stroke:LIGHT,"stroke-width":"1","stroke-dasharray":"6 5"}));
+        svg.append(hs("line",{x1:CX,y1:CY,x2:d.cx,y2:d.cy,stroke:LIGHT,"stroke-width":"0.8","stroke-dasharray":"4 3"}));
     });
 
-    // Square border
-    svg.append(hs("rect",{x:SL,y:ST,width:SW,height:SH,fill:"none",stroke:DARK,"stroke-width":"1.6"}));
+    // Square
+    svg.append(hs("rect",{x:SL,y:ST,width:SW,height:SW,fill:"none",stroke:DARK,"stroke-width":"1.2"}));
 
     // 10 octagonal rings
-    for(let level=1;level<=10;level++){
-        const isDark=level===5||level===10;
-        svg.append(hs("path",{d:octPath(R*(level/10)),fill:"none",stroke:isDark?DARK:LIGHT,"stroke-width":isDark?"1.4":"0.7"}));
+    for(let lv=1;lv<=10;lv++){
+        const dk=lv===5||lv===10;
+        svg.append(hs("path",{d:octPath(R*(lv/10)),fill:"none",stroke:dk?DARK:LIGHT,"stroke-width":dk?"1":"0.5"}));
     }
 
-    // Tick dots on axes
+    // Tick dots
     angles.forEach(a=>{
-        for(let level=1;level<=10;level++){
-            const[tx,ty]=pol(a,R*(level/10));
-            svg.append(hs("circle",{cx:tx,cy:ty,r:"1.8",fill:DARK}));
+        for(let lv=1;lv<=10;lv++){
+            const[tx,ty]=pol(a,R*(lv/10));
+            svg.append(hs("circle",{cx:tx.toFixed(1),cy:ty.toFixed(1),r:"1.2",fill:DARK}));
         }
     });
 
-    // Blue radar shape
-    svg.append(hs("path",{d:radarPath,fill:BLUE_F,stroke:BLUE_S,"stroke-width":"2.5","stroke-linejoin":"round"}));
+    // Data shape
+    svg.append(hs("path",{d:radarPath,fill:BLUE_F,stroke:BLUE_S,"stroke-width":"2","stroke-linejoin":"round"}));
 
-    // Domain labels INSIDE grid
-    // GIFTEDNESS — top
-    const gt=hs("text",{x:CX,y:CY-R*0.78,"text-anchor":"middle","dominant-baseline":"central","font-size":"30","font-weight":"400","letter-spacing":"6",fill:TXT});gt.textContent="GIFTEDNESS";svg.append(gt);
-    // ADHD — bottom
-    const ab=hs("text",{x:CX,y:CY+R*0.80,"text-anchor":"middle","dominant-baseline":"central","font-size":"30","font-weight":"400","letter-spacing":"6",fill:TXT});ab.textContent="ADHD";svg.append(ab);
-    // OVERLAP — right (vertical)
-    const ov=hs("text",{x:CX+R*0.78,y:CY,"text-anchor":"middle","dominant-baseline":"central","font-size":"30","font-weight":"400","letter-spacing":"6",fill:TXT,"writing-mode":"vertical-rl",style:"text-orientation:mixed"});ov.textContent="OVERLAP";svg.append(ov);
-    // AUTISM — left (vertical, rotated 180)
-    const lx2=CX-R*0.78;
-    const au=hs("text",{x:lx2,y:CY,"text-anchor":"middle","dominant-baseline":"central","font-size":"30","font-weight":"400","letter-spacing":"6",fill:TXT,"writing-mode":"vertical-rl",transform:`rotate(180,${lx2},${CY})`,style:"text-orientation:mixed"});au.textContent="AUTISM";svg.append(au);
+    // Domain labels inside
+    const dFS="18",dFW="400",dLS="4";
+    const gt2=hs("text",{x:CX,y:CY-R*0.52,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":dLS,fill:TXT});gt2.textContent="GIFTEDNESS";svg.append(gt2);
+    const ab2=hs("text",{x:CX,y:CY+R*0.55,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":dLS,fill:TXT});ab2.textContent="ADHD";svg.append(ab2);
+    const ov2=hs("text",{x:CX+R*0.52,y:CY,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":dLS,fill:TXT,"writing-mode":"vertical-rl",style:"text-orientation:mixed"});ov2.textContent="OVERLAP";svg.append(ov2);
+    const lx3=CX-R*0.52;
+    const au2=hs("text",{x:lx3,y:CY,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":dLS,fill:TXT,"writing-mode":"vertical-rl",transform:`rotate(180,${lx3.toFixed(1)},${CY})`,style:"text-orientation:mixed"});au2.textContent="AUTISM";svg.append(au2);
 
-    // 8 gold dots + sub-labels outside
+    // Gold dots + labels
     outer.forEach((d,i)=>{
         const lp=labelPos[i];
-        svg.append(hs("circle",{cx:d.cx,cy:d.cy,r:"17",fill:DOT_COL}));
-        const t=hs("text",{x:d.cx+lp.dx,y:d.cy+lp.dy,"text-anchor":lp.anchor,"dominant-baseline":"central","font-size":"28","font-weight":"700","letter-spacing":"2",fill:TXT});
+        svg.append(hs("circle",{cx:d.cx,cy:d.cy,r:"10",fill:DOT_COL}));
+        const t=hs("text",{x:(d.cx+lp.dx),y:(d.cy+lp.dy),"text-anchor":lp.anchor,"dominant-baseline":"central","font-size":"16","font-weight":"700","letter-spacing":"1.5",fill:TXT});
         t.textContent=d.label;svg.append(t);
     });
 
-    // Score bar — large
-    const barY=H-80;
-    const barW=SW+250;
-    const barX=CX-barW/2;
+    // Score bar — spans full width
+    const barY=H-40;
+    const barW=W-40;
+    const barX=20;
     const cats=[
         {k:"giftedness",l:"Giftedness:"},
         {k:"adhd",l:"ADHD:"},
@@ -262,13 +257,13 @@ function radar(sc){
         {k:"overlap",l:"Overlap:"},
     ];
     const cellW=barW/4;
-    svg.append(hs("rect",{x:barX,y:barY-40,width:barW,height:80,rx:"6",fill:BAR_BG,stroke:BAR_BORDER,"stroke-width":"1.5"}));
+    svg.append(hs("rect",{x:barX,y:barY-22,width:barW,height:44,rx:"4",fill:BAR_BG,stroke:BAR_BORDER,"stroke-width":"1"}));
     cats.forEach((c,i)=>{
         const cx2=barX+cellW*i;
-        if(i>0)svg.append(hs("line",{x1:cx2,y1:barY-40,x2:cx2,y2:barY+40,stroke:BAR_BORDER,"stroke-width":"1"}));
+        if(i>0)svg.append(hs("line",{x1:cx2,y1:barY-22,x2:cx2,y2:barY+22,stroke:BAR_BORDER,"stroke-width":"0.8"}));
         const tx=cx2+cellW/2;
-        const lt=hs("text",{x:tx-20,y:barY,"text-anchor":"end","dominant-baseline":"central","font-size":"28",fill:BAR_TXT});lt.textContent=c.l;svg.append(lt);
-        const vt=hs("text",{x:tx+8,y:barY,"text-anchor":"start","dominant-baseline":"central","font-size":"36","font-weight":"700",fill:GRN});vt.textContent=sc[c.k]+"%";svg.append(vt);
+        const lt=hs("text",{x:tx-10,y:barY,"text-anchor":"end","dominant-baseline":"central","font-size":"13",fill:BAR_TXT});lt.textContent=c.l;svg.append(lt);
+        const vt=hs("text",{x:tx+4,y:barY,"text-anchor":"start","dominant-baseline":"central","font-size":"17","font-weight":"700",fill:GRN});vt.textContent=sc[c.k]+"%";svg.append(vt);
     });
 
     return svg;
@@ -723,16 +718,35 @@ function renderQuiz(){
     });
     w.append(steps);
 
+    // Scale legend — like personality.co reference
+    const legend=h("div","scale-legend",[]);
+    legend.append(h("div","scale-legend-title",["Choose how accurately each statement reflects you."]));
+    const scaleRow=h("div","scale-row",[]);
+    const scaleLabels=["Not at\nall","Rarely","Sometimes","Often","Mostly","Half","Moderate","Usually","Very\noften","Almost\nalways","Maximum"];
+    for(let v=0;v<=10;v++){
+        const item=h("div","scale-item",[]);
+        const circle=h("div","scale-circle",[]);
+        // Gradient from red/orange through grey to green/teal
+        const colors=["#e8a0a0","#e8b88a","#d4c4a0","#c0c8a0","#a8c8a0","#bbb","#90c4a8","#80c0a8","#70bca8","#60b8a8","#4eb8a8"];
+        circle.style.borderColor=colors[v];
+        if(v<=2)circle.style.background=colors[v]+"30";
+        else if(v>=8)circle.style.background=colors[v]+"30";
+        item.append(circle);
+        item.append(h("span","scale-label",[v.toString()]));
+        scaleRow.append(item);
+    }
+    legend.append(scaleRow);
+    const scaleEnds=h("div","scale-ends",[]);
+    scaleEnds.append(h("span","scale-end-l",["Not at all"]));
+    scaleEnds.append(h("span","scale-end-r",["Maximum"]));
+    legend.append(scaleEnds);
+    w.append(legend);
+
     const qlist=h("div","q-list",[]);
     Q[cat].forEach((qText,qi)=>{
         const cv=S.ans[cat]?.[qi];
         const qcard=h("div","q-item",[]);
-        const qhdr=h("div","q-header",[]);
-        qhdr.append(h("span","q-text",[qText]));
-        qcard.append(qhdr);
-        const btnsWrap=h("div","sc-btns-wrap",[]);
-        const lbl0=h("span","sc-anchor sc-anchor-l",["0 = not at all"]);
-        const lbl10=h("span","sc-anchor sc-anchor-r",["10 = maximum"]);
+        qcard.append(h("div","q-text",[qText]));
         const btns=h("div","sc-btns",[]);
         for(let v=0;v<=10;v++){
             const b=document.createElement("button");
@@ -744,8 +758,7 @@ function renderQuiz(){
             b.addEventListener("click",()=>{S.ans[cat][qi]=v;render()});
             btns.append(b);
         }
-        btnsWrap.append(lbl0);btnsWrap.append(btns);btnsWrap.append(lbl10);
-        qcard.append(btnsWrap);
+        qcard.append(btns);
         qlist.append(qcard);
     });
     w.append(qlist);
