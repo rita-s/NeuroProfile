@@ -993,10 +993,10 @@ body {
 }
 
 .card-lbl {
-    font-size: .88rem;
+    font-size: 1.15rem;
     font-weight: 800;
-    letter-spacing: 1.8px;
-    margin-bottom: 14px;
+    letter-spacing: 2px;
+    margin-bottom: 16px;
     color: rgb(var(--c-au));
     text-transform: uppercase;
     font-family: var(--font-sans);
@@ -1039,9 +1039,9 @@ body {
 
 .s-lbl {
     font-weight: 800;
-    font-size: .88rem;
+    font-size: 1.15rem;
     text-transform: uppercase;
-    letter-spacing: 1.8px;
+    letter-spacing: 2px;
 }
 
 /* Override inline score label colors */
@@ -1089,21 +1089,21 @@ body {
 }
 
 .s-desc {
-    font-size: var(--fs-00);
+    font-size: var(--fs-0);
     color: var(--tx2);
-    line-height: 1.7;
+    line-height: 1.85;
     margin-top: 6px;
 }
 
 /* Radar */
 .card-radar {
     text-align: center;
-    padding: var(--s-10) var(--s-6);
+    padding: clamp(1.5rem, 2.5vw, 2.5rem);
 }
 
 .radar-svg {
     width: 100%;
-    max-width: 600px;
+    max-width: 900px;
     margin: 0 auto;
     display: block;
     font-family: var(--font-sans);
@@ -1116,34 +1116,35 @@ body {
 .ten {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 0;
+    gap: 14px;
+    padding: 14px 0;
     border-bottom: 1px solid var(--brd2);
 }
 
 .ten:last-child { border-bottom: none; }
 
 .ten-b {
-    width: 30px;
-    height: 30px;
-    border-radius: 10px;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
     display: grid;
     place-items: center;
     color: #fff;
-    font-size: .74rem;
+    font-size: .95rem;
     font-weight: 900;
     flex-shrink: 0;
 }
 
 .ten-t {
-    font-size: var(--fs-00);
+    font-size: var(--fs-0);
     font-weight: 600;
     flex: 1;
-    color: var(--tx2);
+    color: var(--tx);
+    line-height: 1.85;
 }
 
 .ten-c {
-    font-size: .68rem;
+    font-size: .82rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -1165,10 +1166,12 @@ body {
 }
 
 .sc-th {
-    font-size: .88rem;
+    font-size: 1.15rem;
     font-weight: 800;
-    letter-spacing: 1.8px;
+    letter-spacing: 2px;
     text-transform: uppercase;
+    text-decoration: none;
+    border: none;
 }
 
 .sc-trow {
@@ -1205,13 +1208,13 @@ body {
 .sc-mob-section { margin-bottom: var(--s-7); }
 .sc-mob-section:last-child { margin-bottom: 0; }
 .sc-mob-label {
-    font-size: .88rem;
+    font-size: 1.15rem;
     font-weight: 800;
-    letter-spacing: 1.8px;
+    letter-spacing: 2px;
     text-transform: uppercase;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1.5px solid var(--brd2);
+    margin-bottom: 16px;
+    padding-bottom: 0;
+    border-bottom: none;
 }
 .sc-mob-item {
     padding: 10px 0;
