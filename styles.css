@@ -1098,29 +1098,14 @@ body {
 
 .radar-svg {
     width: 100%;
-    max-width: 520px;
+    max-width: 600px;
     margin: 0 auto;
+    display: block;
+    font-family: var(--font-sans);
 }
 
-.r-grid { fill: none; stroke: var(--brd2); stroke-width: .5; }
-.r-grid-o { fill: none; stroke: var(--brd); stroke-width: 1; }
-.r-axis { stroke: var(--brd2); stroke-width: .4; }
-.r-square { stroke: var(--brd); stroke-width: 1; }
-
-.r-shape {
-    fill: var(--radar-fill);
-    stroke: var(--radar-stroke);
-    stroke-width: 2.5;
-    stroke-linejoin: round;
-    stroke-dasharray: 1200;
-    animation: draw 1s ease both;
-}
-
-.r-dot { stroke: var(--card-solid); stroke-width: 2.5; }
-.r-label-dot { opacity: 0.85; }
-.r-lbl { font-size: 11px; font-weight: 800; letter-spacing: 1.2px; }
-.r-val { font-size: 16px; font-weight: 900; }
-.r-domain-lbl { font-size: 15px; font-weight: 800; letter-spacing: 2px; opacity: 0.55; }
+.r-grid,.r-grid-o,.r-axis,.r-square,.r-dot,.r-label-dot,.r-lbl,.r-val,.r-domain-lbl,.r-bar-label,.r-bar-val { /* reset */ }
+.r-shape { /* no animation — direct render */ }
 
 /* Tens */
 .ten {

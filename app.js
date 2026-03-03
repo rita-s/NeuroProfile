@@ -144,119 +144,121 @@ function scoreDesc(cat,val){
 
 // ── RADAR SVG ──
 function radar(sc){
-  const sz=540,cx=sz/2,cy=sz/2;
-  // Square frame
-  const sqSz=sz*0.52, sqHalf=sqSz/2;
-  const sqL=cx-sqHalf, sqT=cy-sqHalf, sqR=cx+sqHalf, sqB=cy+sqHalf;
+  // Exact port of React reference design
+  const W=1000,H=1060;
+  const SL=230,ST=220,SW=540,SH=540;
+  const SR=SL+SW,SB=ST+SH;
+  const CX=SL+SW/2,CY=ST+SH/2;
+  const R=250;
+  const DOT_COL="#B48E4E",BLUE_S="#2B5EA7",BLUE_F="rgba(43,94,167,0.06)",DARK="#9A9DA1",LIGHT="#B4B6BA",TXT="#444",GRN="#3B8C3B";
 
-  // 8 axes at 45-degree intervals
-  const axes=[
-    {k:"giftedness",sub:"Systems",a:-90,     domain:true, dLabel:"GIFTEDNESS"},
-    {k:"giftedness",sub:"Prediction",a:-45,  domain:false},
-    {k:"overlap",   sub:"Intensity",a:0,     domain:true, dLabel:"OVERLAP"},
-    {k:"overlap",   sub:"Curiosity",a:45,    domain:false},
-    {k:"adhd",      sub:"Novelty",a:90,      domain:true, dLabel:"ADHD"},
-    {k:"adhd",      sub:"Speed",a:135,       domain:false},
-    {k:"autism",    sub:"Patterns",a:180,    domain:true, dLabel:"AUTISM"},
-    {k:"autism",    sub:"Focus",a:225,       domain:false},
+  const pol=(a,r)=>{const rd=((a-90)*Math.PI)/180;return[CX+r*Math.cos(rd),CY+r*Math.sin(rd)];};
+  const octPath=r=>{const pts=[];for(let a=0;a<360;a+=45)pts.push(pol(a,r));return pts.map((p,i)=>`${i===0?"M":"L"}${p[0]},${p[1]}`).join(" ")+"Z";};
+  const angles=[0,45,90,135,180,225,270,315];
+
+  // Map quiz answers to 8 sub-scores (0-10)
+  const v=(cat,i)=>S.ans[cat]?.[i]??5;
+  const blend=(cat,qi)=>Math.min(10,Math.max(0,Math.round(sc[cat]*0.06+v(cat,qi)*0.4)));
+  const radarScores=[
+    blend("giftedness",0),  // Systems
+    blend("giftedness",9),  // Prediction
+    blend("overlap",1),     // Intensity
+    blend("overlap",6),     // Curiosity
+    blend("adhd",1),        // Novelty
+    blend("adhd",4),        // Speed
+    blend("autism",3),      // Patterns
+    blend("autism",1),      // Focus
+  ];
+  const radarPts=radarScores.map((val,i)=>pol(angles[i],R*(val/10)));
+  const radarPath=radarPts.map((p,i)=>`${i===0?"M":"L"}${p[0]},${p[1]}`).join(" ")+"Z";
+
+  // 8 outer label positions (identical to reference)
+  const outer=[
+    {label:"SYSTEMS",   cx:CX,    cy:ST-70},
+    {label:"PREDICTION",cx:SR+60, cy:ST-60},
+    {label:"INTENSITY", cx:SR+70, cy:CY},
+    {label:"CURIOSITY", cx:SR+60, cy:SB+60},
+    {label:"NOVELTY",   cx:CX,    cy:SB+85},
+    {label:"SPEED",     cx:SL-60, cy:SB+60},
+    {label:"PATTERNS",  cx:SL-70, cy:CY},
+    {label:"FOCUS",     cx:SL-60, cy:ST-60},
+  ];
+  const labelPos=[
+    {dy:-38,dx:0,anchor:"middle"},
+    {dy:-36,dx:0,anchor:"middle"},
+    {dy:0,dx:34,anchor:"start"},
+    {dy:36,dx:0,anchor:"middle"},
+    {dy:40,dx:0,anchor:"middle"},
+    {dy:36,dx:0,anchor:"middle"},
+    {dy:0,dx:-34,anchor:"end"},
+    {dy:-36,dx:0,anchor:"middle"},
   ];
 
-  const rad=d=>d*Math.PI/180;
-  const xy=(deg,r)=>[cx+r*Math.cos(rad(deg)),cy+r*Math.sin(rad(deg))];
-  const mr=sqHalf*0.82; // grid radius fits inside square
+  const svg=hs("svg",{viewBox:`0 0 ${W} ${H}`,class:"radar-svg"});
 
-  const svg=hs("svg",{viewBox:`0 0 ${sz} ${sz}`,class:"radar-svg"});
+  // 8 dashed lines from center to outer labels
+  outer.forEach(d=>{
+    svg.append(hs("line",{x1:CX,y1:CY,x2:d.cx,y2:d.cy,stroke:LIGHT,"stroke-width":"1","stroke-dasharray":"6 5"}));
+  });
 
   // Square border
-  svg.append(hs("rect",{x:sqL,y:sqT,width:sqSz,height:sqSz,fill:"none",stroke:"var(--brd)",class:"r-square","stroke-width":"1"}));
+  svg.append(hs("rect",{x:SL,y:ST,width:SW,height:SH,fill:"none",stroke:DARK,"stroke-width":"1.6"}));
 
-  // Octagonal grid rings
-  [.25,.5,.75,1].forEach(f=>{
-    const pts=axes.map(a=>xy(a.a,mr*f));
-    svg.append(hs("polygon",{points:pts.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(" "),class:f===1?"r-grid-o":"r-grid"}));
-  });
+  // 10 octagonal rings
+  for(let level=1;level<=10;level++){
+    const isDark=level===5||level===10;
+    svg.append(hs("path",{d:octPath(R*(level/10)),fill:"none",stroke:isDark?DARK:LIGHT,"stroke-width":isDark?"1.4":"0.7"}));
+  }
 
-  // Dashed axis lines from center to square edge
-  axes.forEach(a=>{
-    // Find intersection with square
-    const cos=Math.cos(rad(a.a)), sin=Math.sin(rad(a.a));
-    let t=Infinity;
-    if(cos!==0){const t1=(sqHalf)/Math.abs(cos);t=Math.min(t,t1);}
-    if(sin!==0){const t2=(sqHalf)/Math.abs(sin);t=Math.min(t,t2);}
-    const ex=cx+cos*t, ey=cy+sin*t;
-    svg.append(hs("line",{x1:cx,y1:cy,x2:ex.toFixed(1),y2:ey.toFixed(1),class:"r-axis","stroke-dasharray":"4,4"}));
-  });
-
-  // Domain labels INSIDE the grid (rotated along axes, between center and edge)
-  axes.forEach(a=>{
-    if(!a.domain)return;
-    const labelR=mr*0.45;
-    const[lx,ly]=xy(a.a,labelR);
-    let rotation=a.a;
-    if(rotation>90||rotation<-90)rotation+=180; // keep text readable
-    const t=hs("text",{
-      x:lx.toFixed(1),y:ly.toFixed(1),
-      "text-anchor":"middle","dominant-baseline":"middle",
-      transform:`rotate(${rotation},${lx.toFixed(1)},${ly.toFixed(1)})`,
-      class:"r-domain-lbl",fill:COL[a.k].hex
-    });
-    t.textContent=a.dLabel;svg.append(t);
-  });
-
-  // Data shape
-  const subScores=axes.map(a=>{
-    const base=sc[a.k];
-    const v=(cat,i)=>S.ans[cat]?.[i]??5;
-    const idx=axes.filter(x=>x.k===a.k).indexOf(a);
-    let subVal;
-    if(a.k==="giftedness"){subVal=idx===0?v("giftedness",0)*10:v("giftedness",9)*10;}
-    else if(a.k==="adhd"){subVal=idx===0?v("adhd",1)*10:v("adhd",4)*10;}
-    else if(a.k==="autism"){subVal=idx===0?v("autism",3)*10:v("autism",1)*10;}
-    else{subVal=idx===0?v("overlap",1)*10:v("overlap",6)*10;}
-    return Math.min(100,Math.max(0,Math.round(base*0.6+subVal*0.4)));
-  });
-
-  const dp=axes.map((a,i)=>xy(a.a,(subScores[i]/100)*mr));
-  svg.append(hs("polygon",{points:dp.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(" "),class:"r-shape"}));
-
-  // Data dots on shape
-  dp.forEach(([x,y],i)=>{
-    svg.append(hs("circle",{cx:x.toFixed(1),cy:y.toFixed(1),r:"4.5",fill:COL[axes[i].k].hex,class:"r-dot"}));
-  });
-
-  // Outside labels: sub-name + dot, positioned outside the square
-  axes.forEach((a,i)=>{
-    const cos=Math.cos(rad(a.a)), sin=Math.sin(rad(a.a));
-    // Position outside square
-    let t=Infinity;
-    if(cos!==0)t=Math.min(t,(sqHalf)/Math.abs(cos));
-    if(sin!==0)t=Math.min(t,(sqHalf)/Math.abs(sin));
-    const edgeX=cx+cos*t, edgeY=cy+sin*t;
-    const offset=42;
-    const lx=cx+cos*(t+offset), ly=cy+sin*(t+offset);
-
-    // Dot
-    svg.append(hs("circle",{cx:lx.toFixed(1),cy:ly.toFixed(1),r:"6",fill:COL[a.k].hex,class:"r-label-dot"}));
-
-    // Sub-label
-    let anchor="middle",dx=0,dy=16;
-    if(Math.abs(cos)>0.5&&cos>0){anchor="left";dx=10;dy=4;}
-    if(Math.abs(cos)>0.5&&cos<0){anchor="right";dx=-10;dy=4;}
-
-    const t1=hs("text",{
-      x:(lx+dx).toFixed(1),y:(ly+dy).toFixed(1),
-      "text-anchor":anchor,class:"r-lbl",fill:COL[a.k].hex
-    });
-    t1.textContent=a.sub.toUpperCase();svg.append(t1);
-
-    // Domain % only at cardinal positions
-    if(a.domain){
-      const t2=hs("text",{
-        x:(lx+dx).toFixed(1),y:(ly+dy+14).toFixed(1),
-        "text-anchor":anchor,class:"r-val",fill:COL[a.k].hexD
-      });
-      t2.textContent=sc[a.k]+"%";svg.append(t2);
+  // Tick dots on axes
+  angles.forEach(a=>{
+    for(let level=1;level<=10;level++){
+      const[tx,ty]=pol(a,R*(level/10));
+      svg.append(hs("circle",{cx:tx,cy:ty,r:"1.8",fill:DARK}));
     }
+  });
+
+  // Blue radar shape
+  svg.append(hs("path",{d:radarPath,fill:BLUE_F,stroke:BLUE_S,"stroke-width":"2.5","stroke-linejoin":"round"}));
+
+  // Domain labels INSIDE grid
+  // GIFTEDNESS — top
+  const gt=hs("text",{x:CX,y:CY-R*0.78,"text-anchor":"middle","dominant-baseline":"central","font-size":"18","font-weight":"400","letter-spacing":"4",fill:TXT});gt.textContent="GIFTEDNESS";svg.append(gt);
+  // ADHD — bottom
+  const ab=hs("text",{x:CX,y:CY+R*0.80,"text-anchor":"middle","dominant-baseline":"central","font-size":"18","font-weight":"400","letter-spacing":"4",fill:TXT});ab.textContent="ADHD";svg.append(ab);
+  // OVERLAP — right (vertical)
+  const ov=hs("text",{x:CX+R*0.78,y:CY,"text-anchor":"middle","dominant-baseline":"central","font-size":"18","font-weight":"400","letter-spacing":"4",fill:TXT,"writing-mode":"vertical-rl",style:"text-orientation:mixed"});ov.textContent="OVERLAP";svg.append(ov);
+  // AUTISM — left (vertical, rotated 180)
+  const lx2=CX-R*0.78;
+  const au=hs("text",{x:lx2,y:CY,"text-anchor":"middle","dominant-baseline":"central","font-size":"18","font-weight":"400","letter-spacing":"4",fill:TXT,"writing-mode":"vertical-rl",transform:`rotate(180,${lx2},${CY})`,style:"text-orientation:mixed"});au.textContent="AUTISM";svg.append(au);
+
+  // 8 gold dots + sub-labels outside
+  outer.forEach((d,i)=>{
+    const lp=labelPos[i];
+    svg.append(hs("circle",{cx:d.cx,cy:d.cy,r:"14",fill:DOT_COL}));
+    const t=hs("text",{x:d.cx+lp.dx,y:d.cy+lp.dy,"text-anchor":lp.anchor,"dominant-baseline":"central","font-size":"15","font-weight":"700","letter-spacing":"1.5",fill:TXT});
+    t.textContent=d.label;svg.append(t);
+  });
+
+  // Score bar at bottom
+  const barY=H-50;
+  const barW=SW+200;
+  const barX=CX-barW/2;
+  const cats=[
+    {k:"giftedness",l:"Giftedness:"},
+    {k:"adhd",l:"ADHD:"},
+    {k:"autism",l:"Autism:"},
+    {k:"overlap",l:"Overlap:"},
+  ];
+  const cellW=barW/4;
+  // Bar background
+  svg.append(hs("rect",{x:barX,y:barY-20,width:barW,height:40,fill:"#fafafa",stroke:"#ddd","stroke-width":"1"}));
+  cats.forEach((c,i)=>{
+    const cx2=barX+cellW*i;
+    if(i>0)svg.append(hs("line",{x1:cx2,y1:barY-20,x2:cx2,y2:barY+20,stroke:"#ddd","stroke-width":"1"}));
+    const tx=cx2+cellW/2;
+    const lt=hs("text",{x:tx-12,y:barY,"text-anchor":"end","dominant-baseline":"central","font-size":"15",fill:"#666"});lt.textContent=c.l;svg.append(lt);
+    const vt=hs("text",{x:tx+4,y:barY,"text-anchor":"start","dominant-baseline":"central","font-size":"20","font-weight":"700",fill:GRN});vt.textContent=sc[c.k]+"%";svg.append(vt);
   });
 
   return svg;
