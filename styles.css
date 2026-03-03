@@ -854,11 +854,39 @@ body {
     padding-top: var(--s-4);
 }
 
+/* Score buttons wrapper with anchor labels */
+.sc-btns-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sc-anchor {
+    font-size: .72rem;
+    font-weight: 600;
+    color: var(--tx3);
+    white-space: nowrap;
+    flex-shrink: 0;
+    letter-spacing: 0.3px;
+}
+
+.sc-anchor-l { min-width: 70px; text-align: right; }
+.sc-anchor-r { min-width: 70px; text-align: left; }
+
+@media (max-width: 768px) {
+    .sc-btns-wrap { flex-wrap: wrap; justify-content: center; gap: 6px; }
+    .sc-anchor { font-size: .65rem; min-width: auto; }
+    .sc-anchor-l { order: 0; text-align: left; }
+    .sc-anchor-r { order: 2; text-align: right; }
+    .sc-btns { order: 1; width: 100%; }
+}
+
 /* Score buttons — 11 in one row on desktop, 6 on mobile */
 .sc-btns {
     display: grid;
     grid-template-columns: repeat(11, 1fr);
     gap: 5px;
+    flex: 1;
     max-width: 560px;
 }
 
@@ -1039,9 +1067,9 @@ body {
 
 .s-lbl {
     font-weight: 800;
-    font-size: 1.15rem;
+    font-size: 1.4rem;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 2.5px;
 }
 
 /* Override inline score label colors */
@@ -1124,27 +1152,27 @@ body {
 .ten:last-child { border-bottom: none; }
 
 .ten-b {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
     display: grid;
     place-items: center;
     color: #fff;
-    font-size: .95rem;
+    font-size: 1.15rem;
     font-weight: 900;
     flex-shrink: 0;
 }
 
 .ten-t {
     font-size: var(--fs-0);
-    font-weight: 600;
+    font-weight: 500;
     flex: 1;
-    color: var(--tx);
+    color: var(--tx2);
     line-height: 1.85;
 }
 
 .ten-c {
-    font-size: .82rem;
+    font-size: .88rem;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 1px;
