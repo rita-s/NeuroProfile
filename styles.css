@@ -468,7 +468,8 @@ body {
 
 .dom {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
+    justify-content: center;
     gap: 10px;
     padding: 14px 16px;
     border-radius: 14px;
@@ -510,7 +511,6 @@ body {
     height: 10px;
     border-radius: 999px;
     flex-shrink: 0;
-    margin-top: 4px;
 }
 
 .dom-info {
