@@ -144,22 +144,29 @@ function scoreDesc(cat,val){
 
 // ── RADAR SVG ──
 function radar(sc){
-  const sz=440,cx=sz/2,cy=sz/2,mr=sz*.34;
+  const sz=480,cx=sz/2,cy=sz/2,mr=sz*.32;
   const ax=[{k:"giftedness",a:-90},{k:"overlap",a:0},{k:"adhd",a:90},{k:"autism",a:180}];
   const xy=(deg,r)=>[cx+r*Math.cos(deg*Math.PI/180),cy+r*Math.sin(deg*Math.PI/180)];
   const svg=hs("svg",{viewBox:`0 0 ${sz} ${sz}`,class:"radar-svg"});
+  // Grid rings
   [20,40,60,80,100].forEach(lv=>{
     const pts=ax.map(a=>xy(a.a,(lv/100)*mr));
     svg.append(hs("polygon",{points:pts.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(" "),class:lv===100?"r-grid-o":"r-grid"}));
   });
-  ax.forEach(a=>{const[ex,ey]=xy(a.a,mr);svg.append(hs("line",{x1:cx,y1:cy,x2:ex.toFixed(1),y2:ey.toFixed(1),class:"r-axis"}))});
+  // Dashed axis lines
+  ax.forEach(a=>{const[ex,ey]=xy(a.a,mr);svg.append(hs("line",{x1:cx,y1:cy,x2:ex.toFixed(1),y2:ey.toFixed(1),class:"r-axis","stroke-dasharray":"4,4"}))});
+  // Data shape
   const dp=ax.map(a=>xy(a.a,(sc[a.k]/100)*mr));
   svg.append(hs("polygon",{points:dp.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(" "),class:"r-shape"}));
+  // Data dots
   dp.forEach(([x,y],i)=>svg.append(hs("circle",{cx:x.toFixed(1),cy:y.toFixed(1),r:"6",fill:COL[ax[i].k].hex,class:"r-dot"})));
+  // Labels with indicator dots
   ax.forEach(a=>{
-    const[lx,ly]=xy(a.a,mr+42);const lb=a.k.charAt(0).toUpperCase()+a.k.slice(1);
-    const t1=hs("text",{x:lx.toFixed(1),y:(ly-5).toFixed(1),"text-anchor":"middle",class:"r-lbl",fill:COL[a.k].hex});t1.textContent=lb;svg.append(t1);
-    const t2=hs("text",{x:lx.toFixed(1),y:(ly+10).toFixed(1),"text-anchor":"middle",class:"r-val",fill:COL[a.k].hexD});t2.textContent=sc[a.k]+"%";svg.append(t2);
+    const[lx,ly]=xy(a.a,mr+50);const lb=a.k.charAt(0).toUpperCase()+a.k.slice(1);
+    // Indicator dot at label position
+    svg.append(hs("circle",{cx:lx.toFixed(1),cy:(ly-14).toFixed(1),r:"5",fill:COL[a.k].hex,class:"r-label-dot"}));
+    const t1=hs("text",{x:lx.toFixed(1),y:(ly).toFixed(1),"text-anchor":"middle",class:"r-lbl",fill:COL[a.k].hex});t1.textContent=lb.toUpperCase();svg.append(t1);
+    const t2=hs("text",{x:lx.toFixed(1),y:(ly+16).toFixed(1),"text-anchor":"middle",class:"r-val",fill:COL[a.k].hexD});t2.textContent=sc[a.k]+"%";svg.append(t2);
   });
   return svg;
 }
@@ -384,12 +391,9 @@ async function downloadPDF(){
     np(16);label("RECOMMENDATIONS",hex(dc.hex));gap(2);
     rc.forEach((r,i)=>{
       np(18);
-      // Number
-      pdf.setFontSize(10);pdf.setFont("helvetica","bold");pdf.setTextColor(...hex(dc.hex));
-      pdf.text((i+1)+".",ML,y);
       // Title
       pdf.setFontSize(10);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
-      pdf.text(safe(r.t),ML+8,y);y+=6;
+      pdf.text(safe(r.t),ML,y);y+=6;
       // Body
       txt(r.d,ML,pw,8.5,"normal",TX,4.2);gap(7);
     });
@@ -664,10 +668,10 @@ function renderReport(){
   const fl2=h("div","card-lbl",["YOUR FORMULA"]);fl2.style.color=dc.m;cf.append(fl2);
   cf.append(h("p","f-text",[fm.f]));cf.append(h("p","f-mean",["= "+fm.m]));w.append(cf);
 
-  // Recommendations — numbered
+  // Recommendations
   const crec=h("div","card",[]);
   const rl=h("div","card-lbl",["RECOMMENDATIONS"]);rl.style.color=dc.m;crec.append(rl);
-  rc.forEach((r,i)=>{const d=h("div","rec",[]);d.append(h("div","rec-num",[(i+1)+"."]));const body=h("div","rec-body",[]);body.append(h("div","rec-t",[r.t]));body.append(h("div","rec-d",[r.d]));d.append(body);crec.append(d)});
+  rc.forEach(r=>{const d=h("div","rec",[]);d.append(h("div","rec-t",[r.t]));d.append(h("div","rec-d",[r.d]));crec.append(d)});
   w.append(crec);
 
   // Footer

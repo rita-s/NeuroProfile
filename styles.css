@@ -854,16 +854,16 @@ body {
     padding-top: var(--s-4);
 }
 
-/* Score buttons */
+/* Score buttons — 6 columns (0-5 top, 6-10 bottom) */
 .sc-btns {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
     gap: 8px;
-    flex-wrap: wrap;
 }
 
 .sc-btn {
-    width: 46px;
-    height: 46px;
+    width: 100%;
+    height: 48px;
     border-radius: 12px;
     border: 1.5px solid var(--brd);
     background: var(--card-solid);
@@ -956,21 +956,7 @@ body {
 }
 
 .rpt-bar {
-    background: var(--bg2);
-    color: var(--tx3);
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-size: .58rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-align: center;
-    margin: 0 auto 8px;
-    width: fit-content;
-    max-width: 90%;
-    text-transform: uppercase;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: none;
 }
 
 [data-theme="dark"] .rpt-bar {
@@ -1112,27 +1098,27 @@ body {
 
 .radar-svg {
     width: 100%;
-    max-width: 640px;
+    max-width: 560px;
     margin: 0 auto;
 }
 
-.r-grid { fill: none; stroke: var(--brd2); stroke-width: .8; }
-.r-grid-o { fill: none; stroke: var(--brd); stroke-width: 1.5; }
-.r-axis { stroke: var(--brd2); stroke-width: .6; }
+.r-grid { fill: none; stroke: var(--brd2); stroke-width: .6; }
+.r-grid-o { fill: none; stroke: var(--brd); stroke-width: 1.2; }
+.r-axis { stroke: var(--brd2); stroke-width: .5; }
 
 .r-shape {
     fill: var(--radar-fill);
     stroke: var(--radar-stroke);
-    stroke-width: 3;
+    stroke-width: 2.5;
     stroke-linejoin: round;
     stroke-dasharray: 900;
     animation: draw 1s ease both;
 }
 
 .r-dot { stroke: var(--card-solid); stroke-width: 3; }
-
-.r-lbl { font-size: 13px; font-weight: 700; fill: var(--tx2); }
-.r-val { font-size: 16px; font-weight: 900; }
+.r-label-dot { opacity: 0.85; }
+.r-lbl { font-size: 12px; font-weight: 800; letter-spacing: 1.5px; }
+.r-val { font-size: 18px; font-weight: 900; }
 
 /* Tens */
 .ten {
@@ -1291,30 +1277,20 @@ body {
     line-height: 1.85;
 }
 
-/* Recommendations — numbered */
+/* Recommendations */
 .rec {
-    display: flex;
-    gap: 12px;
     margin-bottom: var(--s-8);
-    align-items: flex-start;
 }
 
 .rec:last-child { margin-bottom: 0; }
 
-.rec-num {
-    font-size: 1.1rem;
-    font-weight: 800;
-    color: var(--tx3);
-    flex-shrink: 0;
-    min-width: 24px;
-}
-
-.rec-body { flex: 1; }
+.rec-num { display: none; }
+.rec-body { /* compat */ }
 
 .rec-t {
     font-size: 1.05rem;
     font-weight: 800;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
 
 .rec-d {
@@ -1324,11 +1300,19 @@ body {
 }
 
 /* Footer */
-.rpt-foot { text-align: center; padding-top: var(--s-6); }
+.rpt-foot {
+    text-align: center;
+    padding-top: var(--s-8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
 
 .btn-dl {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     color: #fff !important;
     background: #020816 !important;
@@ -1337,17 +1321,17 @@ body {
     border-radius: 14px;
     font-size: .82rem;
     font-weight: 700;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     cursor: pointer;
-    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.4);
+    box-shadow: var(--shadow-btn);
     transition: transform var(--t), box-shadow var(--t);
-    margin-right: 12px;
+    max-width: 320px;
+    width: 100%;
 }
 
 .btn-dl:hover {
     transform: translateY(-1px);
-    box-shadow: 0 22px 55px rgba(15, 23, 42, 0.48);
 }
 
 [data-theme="dark"] .btn-dl {
@@ -1358,17 +1342,20 @@ body {
 .btn-ghost {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     background: none;
     border: 1.5px solid var(--brd);
     color: var(--tx2);
-    padding: 14px 34px;
+    padding: 13px 34px;
     border-radius: 14px;
     font-size: .82rem;
     font-weight: 700;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     cursor: pointer;
     transition: transform var(--t-fast), border-color var(--t), color var(--t);
+    max-width: 240px;
+    width: 100%;
 }
 
 .btn-ghost:hover {
@@ -1427,7 +1414,7 @@ body {
     .domains {
         grid-template-columns: 1fr;
     }
-    .sc-btn { width: 40px; height: 40px; font-size: .88rem; }
+    .sc-btn { height: 52px; font-size: 1rem; }
     .btn { padding: 13px 32px; }
 }
 
