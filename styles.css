@@ -854,24 +854,29 @@ body {
     padding-top: var(--s-4);
 }
 
-/* Score buttons — 6 columns (0-5 top, 6-10 bottom) */
+/* Score buttons — 11 in one row on desktop, 6 on mobile */
 .sc-btns {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 8px;
+    grid-template-columns: repeat(11, 1fr);
+    gap: 5px;
+    max-width: 560px;
 }
 
 .sc-btn {
     width: 100%;
-    height: 48px;
-    border-radius: 12px;
+    aspect-ratio: 1;
+    border-radius: 6px;
     border: 1.5px solid var(--brd);
     background: var(--card-solid);
     color: var(--tx);
     font-family: var(--font-sans);
-    font-size: .95rem;
+    font-size: .85rem;
     font-weight: 800;
     cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: transform var(--t-fast), background var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast);
 }
 
@@ -988,10 +993,10 @@ body {
 }
 
 .card-lbl {
-    font-size: .74rem;
+    font-size: .88rem;
     font-weight: 800;
-    letter-spacing: 2.2px;
-    margin-bottom: 12px;
+    letter-spacing: 1.8px;
+    margin-bottom: 14px;
     color: rgb(var(--c-au));
     text-transform: uppercase;
     font-family: var(--font-sans);
@@ -1155,15 +1160,14 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0;
-    border-bottom: 2px solid var(--brd2);
-    padding-bottom: 12px;
-    margin-bottom: 16px;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 .sc-th {
-    font-size: .74rem;
+    font-size: .88rem;
     font-weight: 800;
-    letter-spacing: 2.2px;
+    letter-spacing: 1.8px;
     text-transform: uppercase;
 }
 
@@ -1172,22 +1176,21 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 24px;
     padding: 14px 0;
-    border-bottom: 1px solid var(--brd2);
 }
 
-.sc-trow:last-child { border-bottom: none; }
+.sc-trow:last-child { }
 
 .sc-td-t {
-    font-size: .92rem;
+    font-size: 1.1rem;
     font-weight: 700;
     margin-bottom: 4px;
     color: var(--tx);
 }
 
 .sc-td-d {
-    font-size: var(--fs-00);
+    font-size: var(--fs-0);
     color: var(--tx2);
-    line-height: 1.7;
+    line-height: 1.85;
 }
 
 /* Keep old classes for compat */
@@ -1202,19 +1205,18 @@ body {
 .sc-mob-section { margin-bottom: var(--s-7); }
 .sc-mob-section:last-child { margin-bottom: 0; }
 .sc-mob-label {
-    font-size: .74rem;
+    font-size: .88rem;
     font-weight: 800;
-    letter-spacing: 2.2px;
+    letter-spacing: 1.8px;
     text-transform: uppercase;
     margin-bottom: 12px;
     padding-bottom: 8px;
     border-bottom: 1.5px solid var(--brd2);
 }
 .sc-mob-item {
-    padding: 12px 0;
-    border-bottom: 1px solid var(--brd2);
+    padding: 10px 0;
 }
-.sc-mob-item:last-child { border-bottom: none; }
+.sc-mob-item:last-child { }
 
 /* Formula — glass card, no dark block */
 .card-f {
@@ -1275,8 +1277,8 @@ body {
 .rec-body { /* compat */ }
 
 .rec-t {
-    font-size: 1.05rem;
-    font-weight: 800;
+    font-size: 1.1rem;
+    font-weight: 700;
     margin-bottom: 6px;
 }
 
@@ -1401,7 +1403,8 @@ body {
     .domains {
         grid-template-columns: 1fr;
     }
-    .sc-btn { height: 52px; font-size: 1rem; }
+    .sc-btn { height: 52px; aspect-ratio: auto; font-size: 1rem; border-radius: 12px; }
+    .sc-btns { grid-template-columns: repeat(6, 1fr); gap: 8px; }
     .btn { padding: 13px 32px; }
 }
 

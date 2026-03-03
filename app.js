@@ -1,4 +1,5 @@
-/* ── NEUROPROFILE — app.js v5 ─────────────────────────────────────── */
+/* ── NEUROPROFILE — app.js v12 ─────────────────────────────────────── */
+console.log("NeuroProfile v12 loaded");
 const CATS=["autism","adhd","giftedness","overlap"];
 
 /* Colors: muted gold, purple, teal, sage — matching buttons/dots/badges */
@@ -150,7 +151,17 @@ function radar(sc){
   const SR=SL+SW,SB=ST+SH;
   const CX=SL+SW/2,CY=ST+SH/2;
   const R=250;
-  const DOT_COL="#B48E4E",BLUE_S="#2B5EA7",BLUE_F="rgba(43,94,167,0.06)",DARK="#9A9DA1",LIGHT="#B4B6BA",TXT="#444",GRN="#3B8C3B";
+  const isDark=S.dark;
+  const DOT_COL="#B48E4E";
+  const BLUE_S=isDark?"#5B8FD7":"#2B5EA7";
+  const BLUE_F=isDark?"rgba(91,143,215,0.10)":"rgba(43,94,167,0.06)";
+  const DARK=isDark?"#6A6D72":"#9A9DA1";
+  const LIGHT=isDark?"#3A3D42":"#B4B6BA";
+  const TXT=isDark?"#c8c8cc":"#444";
+  const GRN=isDark?"#5CB85C":"#3B8C3B";
+  const BAR_BG=isDark?"#1a1c26":"#fafafa";
+  const BAR_BORDER=isDark?"#333":"#ddd";
+  const BAR_TXT=isDark?"#999":"#666";
 
   const pol=(a,r)=>{const rd=((a-90)*Math.PI)/180;return[CX+r*Math.cos(rd),CY+r*Math.sin(rd)];};
   const octPath=r=>{const pts=[];for(let a=0;a<360;a+=45)pts.push(pol(a,r));return pts.map((p,i)=>`${i===0?"M":"L"}${p[0]},${p[1]}`).join(" ")+"Z";};
@@ -236,7 +247,7 @@ function radar(sc){
   outer.forEach((d,i)=>{
     const lp=labelPos[i];
     svg.append(hs("circle",{cx:d.cx,cy:d.cy,r:"14",fill:DOT_COL}));
-    const t=hs("text",{x:d.cx+lp.dx,y:d.cy+lp.dy,"text-anchor":lp.anchor,"dominant-baseline":"central","font-size":"15","font-weight":"700","letter-spacing":"1.5",fill:TXT});
+    const t=hs("text",{x:d.cx+lp.dx,y:d.cy+lp.dy,"text-anchor":lp.anchor,"dominant-baseline":"central","font-size":"18","font-weight":"700","letter-spacing":"1.5",fill:TXT});
     t.textContent=d.label;svg.append(t);
   });
 
@@ -251,14 +262,13 @@ function radar(sc){
     {k:"overlap",l:"Overlap:"},
   ];
   const cellW=barW/4;
-  // Bar background
-  svg.append(hs("rect",{x:barX,y:barY-20,width:barW,height:40,fill:"#fafafa",stroke:"#ddd","stroke-width":"1"}));
+  svg.append(hs("rect",{x:barX,y:barY-24,width:barW,height:48,fill:BAR_BG,stroke:BAR_BORDER,"stroke-width":"1"}));
   cats.forEach((c,i)=>{
     const cx2=barX+cellW*i;
-    if(i>0)svg.append(hs("line",{x1:cx2,y1:barY-20,x2:cx2,y2:barY+20,stroke:"#ddd","stroke-width":"1"}));
+    if(i>0)svg.append(hs("line",{x1:cx2,y1:barY-24,x2:cx2,y2:barY+24,stroke:BAR_BORDER,"stroke-width":"1"}));
     const tx=cx2+cellW/2;
-    const lt=hs("text",{x:tx-12,y:barY,"text-anchor":"end","dominant-baseline":"central","font-size":"15",fill:"#666"});lt.textContent=c.l;svg.append(lt);
-    const vt=hs("text",{x:tx+4,y:barY,"text-anchor":"start","dominant-baseline":"central","font-size":"20","font-weight":"700",fill:GRN});vt.textContent=sc[c.k]+"%";svg.append(vt);
+    const lt=hs("text",{x:tx-14,y:barY,"text-anchor":"end","dominant-baseline":"central","font-size":"18",fill:BAR_TXT});lt.textContent=c.l;svg.append(lt);
+    const vt=hs("text",{x:tx+6,y:barY,"text-anchor":"start","dominant-baseline":"central","font-size":"24","font-weight":"700",fill:GRN});vt.textContent=sc[c.k]+"%";svg.append(vt);
   });
 
   return svg;
