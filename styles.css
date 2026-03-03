@@ -481,6 +481,7 @@ body {
     /* Hide loose emoji text nodes */
     font-size: 0;
     line-height: 0;
+    text-align: left;
 }
 
 /* Restore font on actual child elements */
@@ -958,15 +959,19 @@ body {
 .rpt-bar {
     background: var(--bg2);
     color: var(--tx3);
-    padding: 8px 16px;
+    padding: 6px 14px;
     border-radius: 999px;
-    font-size: .65rem;
-    font-weight: 800;
-    letter-spacing: 2.2px;
+    font-size: .58rem;
+    font-weight: 700;
+    letter-spacing: 1px;
     text-align: center;
     margin: 0 auto 8px;
     width: fit-content;
+    max-width: 90%;
     text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 [data-theme="dark"] .rpt-bar {
@@ -1217,6 +1222,28 @@ body {
 .sc-grid { display: none; }
 .sc-card { display: none; }
 
+/* Desktop: show table, hide mobile blocks */
+.sc-desktop { display: block; }
+.sc-mobile { display: none; }
+
+/* Mobile SC styles */
+.sc-mob-section { margin-bottom: var(--s-7); }
+.sc-mob-section:last-child { margin-bottom: 0; }
+.sc-mob-label {
+    font-size: .74rem;
+    font-weight: 800;
+    letter-spacing: 2.2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1.5px solid var(--brd2);
+}
+.sc-mob-item {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--brd2);
+}
+.sc-mob-item:last-child { border-bottom: none; }
+
 /* Formula — glass card, no dark block */
 .card-f {
     background: var(--card);
@@ -1384,12 +1411,16 @@ body {
     .domains {
         grid-template-columns: repeat(2, 1fr);
     }
-    .sc-thead, .sc-trow {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
+    /* Swap SC layout */
+    .sc-desktop { display: none; }
+    .sc-mobile { display: block; }
     .rpt-2col {
         grid-template-columns: 1fr;
+    }
+    .rpt-bar {
+        font-size: .48rem;
+        letter-spacing: 0.5px;
+        padding: 5px 10px;
     }
 }
 

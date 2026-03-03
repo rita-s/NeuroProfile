@@ -276,8 +276,8 @@ async function downloadPDF(){
       y+=6;
     });
 
-    // ═══ PAGE 2: Radar + Tens ═══
-    newPage();y=MT+4;
+    // ═══ RADAR ═══
+    np(80);y+=6;
     label("RADAR PROFILE",TX3);gap(2);
     const rcx=W/2, rcy=y+34, rr=32;
     // Grid
@@ -620,28 +620,42 @@ function renderReport(){
   an.forEach(a=>{const s=h("div","an-sec",[]);s.append(h("div","an-t",[a.t]));s.append(h("div","an-d",[a.d]));ca.append(s)});
   w.append(ca);
 
-  // Strengths / Challenges — table format like PDF
+  // Strengths / Challenges
   if(st.length||ch.length){
     const tbl=h("div","card sc-table",[]);
+
+    // Desktop: 2-column grid with interleaved rows
+    const desktop=h("div","sc-desktop",[]);
     const thead=h("div","sc-thead",[]);
     const thS=h("div","sc-th sc-th-str",["SUPERPOWERS"]);thS.style.color="var(--green)";
     const thC=h("div","sc-th sc-th-cha",["KRYPTONITE"]);thC.style.color="var(--pink)";
-    thead.append(thS);thead.append(thC);tbl.append(thead);
+    thead.append(thS);thead.append(thC);desktop.append(thead);
     const maxRows=Math.max(st.length,ch.length);
     for(let i=0;i<maxRows;i++){
       const row=h("div","sc-trow",[]);
       const cellS=h("div","sc-td",[]);
-      if(st[i]){
-        cellS.append(h("div","sc-td-t",[st[i].t]));
-        cellS.append(h("div","sc-td-d",[st[i].d]));
-      }
+      if(st[i]){cellS.append(h("div","sc-td-t",[st[i].t]));cellS.append(h("div","sc-td-d",[st[i].d]));}
       const cellC=h("div","sc-td",[]);
-      if(ch[i]){
-        cellC.append(h("div","sc-td-t",[ch[i].t]));
-        cellC.append(h("div","sc-td-d",[ch[i].d]));
-      }
-      row.append(cellS);row.append(cellC);tbl.append(row);
+      if(ch[i]){cellC.append(h("div","sc-td-t",[ch[i].t]));cellC.append(h("div","sc-td-d",[ch[i].d]));}
+      row.append(cellS);row.append(cellC);desktop.append(row);
     }
+    tbl.append(desktop);
+
+    // Mobile: two separate blocks
+    const mobile=h("div","sc-mobile",[]);
+    if(st.length){
+      const sBlock=h("div","sc-mob-section",[]);
+      const sLabel=h("div","sc-mob-label",["SUPERPOWERS"]);sLabel.style.color="var(--green)";sBlock.append(sLabel);
+      st.forEach(s=>{const item=h("div","sc-mob-item",[]);item.append(h("div","sc-td-t",[s.t]));item.append(h("div","sc-td-d",[s.d]));sBlock.append(item);});
+      mobile.append(sBlock);
+    }
+    if(ch.length){
+      const cBlock=h("div","sc-mob-section",[]);
+      const cLabel=h("div","sc-mob-label",["KRYPTONITE"]);cLabel.style.color="var(--pink)";cBlock.append(cLabel);
+      ch.forEach(c=>{const item=h("div","sc-mob-item",[]);item.append(h("div","sc-td-t",[c.t]));item.append(h("div","sc-td-d",[c.d]));cBlock.append(item);});
+      mobile.append(cBlock);
+    }
+    tbl.append(mobile);
     w.append(tbl);
   }
 
