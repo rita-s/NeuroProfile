@@ -843,6 +843,7 @@ body {
     font-size: clamp(1rem, .95rem + .4vw, 1.15rem);
     font-weight: 600;
     line-height: 1.5;
+    margin-bottom: var(--s-4);
 }
 
 /* Scale hint */
@@ -925,26 +926,49 @@ body {
     display: grid;
     grid-template-columns: repeat(11, 1fr);
     gap: 5px;
-    max-width: 560px;
-    flex: 1;
+    max-width: 600px;
+}
+
+.sc-btns-5 {
+    grid-template-columns: repeat(5, 1fr) !important;
+    max-width: 400px !important;
+    gap: 8px !important;
 }
 
 .sc-btn {
     width: 100%;
-    aspect-ratio: 1;
-    border-radius: 6px;
-    border: 1.5px solid var(--brd);
-    background: var(--card-solid);
+    border-radius: 10px;
+    border: 2px solid #bbb;
+    background: transparent;
     color: var(--tx);
     font-family: var(--font-sans);
-    font-size: .85rem;
-    font-weight: 800;
     cursor: pointer;
-    padding: 0;
+    padding: 8px 0;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 2px;
     transition: transform var(--t-fast), background var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast);
+}
+
+.sc-btn-num {
+    font-size: .95rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.sc-btn-sub {
+    font-size: .5rem;
+    font-weight: 600;
+    color: var(--tx3);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    line-height: 1;
+}
+
+.sc-btn.sel .sc-btn-sub {
+    color: rgba(255,255,255,0.8);
 }
 
 .sc-btn:hover {
@@ -1054,9 +1078,10 @@ body {
 
 .rpt-meta {
     text-align: center;
-    font-size: .84rem;
-    color: var(--tx3);
+    font-size: var(--fs-0);
+    color: var(--tx2);
     margin-bottom: var(--s-10);
+    line-height: 1.85;
 }
 
 .card-lbl {
@@ -1170,7 +1195,7 @@ body {
 
 .radar-svg {
     width: 100%;
-    max-width: 900px;
+    max-width: 640px;
     margin: 0 auto;
     display: block;
     font-family: var(--font-sans);
@@ -1473,8 +1498,9 @@ body {
     .domains {
         grid-template-columns: 1fr;
     }
-    .sc-btn { height: 52px; aspect-ratio: auto; font-size: 1rem; border-radius: 12px; }
-    .sc-btns { grid-template-columns: repeat(6, 1fr); gap: 8px; }
+    .sc-btn { height: auto; font-size: 1rem; border-radius: 12px; padding: 10px 0; }
+    .sc-btn-num { font-size: 1.1rem; }
+    .sc-btn-sub { font-size: .6rem; }
     .btn { padding: 13px 32px; }
 }
 

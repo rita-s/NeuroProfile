@@ -1,5 +1,5 @@
-/* ── NEUROPROFILE — app.js v20 ─────────────────────────────────────── */
-console.log("NeuroProfile v20 loaded");
+/* ── NEUROPROFILE — app.js v22 ─────────────────────────────────────── */
+console.log("NeuroProfile v22 loaded");
 const CATS=["autism","adhd","giftedness","overlap"];
 
 /* Colors: muted gold, purple, teal, sage — matching buttons/dots/badges */
@@ -181,26 +181,26 @@ function radar(sc){
     const radarPath=radarPts.map((p,i)=>`${i===0?"M":"L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ")+"Z";
 
     // Outer labels — tight to square
-    const oD=50; // offset from square edge
+    const oD=36; // offset from square edge
     const outer=[
         {label:"SYSTEMS",   cx:CX,     cy:ST-oD},
-        {label:"PREDICTION",cx:SR+oD-10,cy:ST-oD+15},
+        {label:"PREDICTION",cx:SR+oD-6,cy:ST-oD+12},
         {label:"INTENSITY", cx:SR+oD,  cy:CY},
-        {label:"CURIOSITY", cx:SR+oD-10,cy:SB+oD-15},
-        {label:"NOVELTY",   cx:CX,     cy:SB+oD+5},
-        {label:"SPEED",     cx:SL-oD+10,cy:SB+oD-15},
+        {label:"CURIOSITY", cx:SR+oD-6,cy:SB+oD-12},
+        {label:"NOVELTY",   cx:CX,     cy:SB+oD+4},
+        {label:"SPEED",     cx:SL-oD+6,cy:SB+oD-12},
         {label:"PATTERNS",  cx:SL-oD,  cy:CY},
-        {label:"FOCUS",     cx:SL-oD+10,cy:ST-oD+15},
+        {label:"FOCUS",     cx:SL-oD+6,cy:ST-oD+12},
     ];
     const labelPos=[
-        {dy:-24,dx:0,anchor:"middle"},
-        {dy:-22,dx:0,anchor:"middle"},
-        {dy:0,dx:22,anchor:"start"},
-        {dy:22,dx:0,anchor:"middle"},
-        {dy:26,dx:0,anchor:"middle"},
-        {dy:22,dx:0,anchor:"middle"},
-        {dy:0,dx:-22,anchor:"end"},
-        {dy:-22,dx:0,anchor:"middle"},
+        {dy:-16,dx:0,anchor:"middle"},
+        {dy:-14,dx:0,anchor:"middle"},
+        {dy:0,dx:14,anchor:"start"},
+        {dy:14,dx:0,anchor:"middle"},
+        {dy:18,dx:0,anchor:"middle"},
+        {dy:14,dx:0,anchor:"middle"},
+        {dy:0,dx:-14,anchor:"end"},
+        {dy:-14,dx:0,anchor:"middle"},
     ];
 
     const svg=hs("svg",{viewBox:`0 0 ${W} ${H}`,class:"radar-svg"});
@@ -231,7 +231,7 @@ function radar(sc){
     svg.append(hs("path",{d:radarPath,fill:BLUE_F,stroke:BLUE_S,"stroke-width":"2","stroke-linejoin":"round"}));
 
     // Domain labels inside
-    const dFS="18",dFW="400",dLS="4";
+    const dFS="13",dFW="400",dLS="4";
     const gt2=hs("text",{x:CX,y:CY-R*0.52,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":dLS,fill:TXT});gt2.textContent="GIFTEDNESS";svg.append(gt2);
     const ab2=hs("text",{x:CX,y:CY+R*0.55,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":dLS,fill:TXT});ab2.textContent="ADHD";svg.append(ab2);
     const ov2=hs("text",{x:CX+R*0.52,y:CY,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":dLS,fill:TXT,"writing-mode":"vertical-rl",style:"text-orientation:mixed"});ov2.textContent="OVERLAP";svg.append(ov2);
@@ -241,8 +241,8 @@ function radar(sc){
     // Gold dots + labels
     outer.forEach((d,i)=>{
         const lp=labelPos[i];
-        svg.append(hs("circle",{cx:d.cx,cy:d.cy,r:"10",fill:DOT_COL}));
-        const t=hs("text",{x:(d.cx+lp.dx),y:(d.cy+lp.dy),"text-anchor":lp.anchor,"dominant-baseline":"central","font-size":"16","font-weight":"700","letter-spacing":"1.5",fill:TXT});
+        svg.append(hs("circle",{cx:d.cx,cy:d.cy,r:"7",fill:DOT_COL}));
+        const t=hs("text",{x:(d.cx+lp.dx),y:(d.cy+lp.dy),"text-anchor":lp.anchor,"dominant-baseline":"central","font-size":"12","font-weight":"700","letter-spacing":"1",fill:TXT});
         t.textContent=d.label;svg.append(t);
     });
 
@@ -742,22 +742,32 @@ function renderQuiz(){
     legend.append(scaleEnds);
     w.append(legend);
 
+    // Button colors gradient: warm(0) → neutral(5) → cool(10)
+    const btnColors=["#e8a0a0","#e8b88a","#d4c4a0","#c0c8a0","#a8c8a0","#bbb","#90c4a8","#80c0a8","#70bca8","#60b8a8","#4eb8a8"];
+    const mob5=[{v:0,l:"0"},{v:3,l:"3"},{v:5,l:"5"},{v:7,l:"7"},{v:10,l:"10"}];
+    const isMob=window.innerWidth<=768;
+    const btnLabels={0:"Not at all",5:"Neutral",10:"Maximum"};
+
     const qlist=h("div","q-list",[]);
     Q[cat].forEach((qText,qi)=>{
         const cv=S.ans[cat]?.[qi];
         const qcard=h("div","q-item",[]);
         qcard.append(h("div","q-text",[qText]));
-        const btns=h("div","sc-btns",[]);
-        for(let v=0;v<=10;v++){
+        const btns=h("div","sc-btns"+(isMob?" sc-btns-5":""),[]);
+        const steps=isMob?mob5:Array.from({length:11},(_,i)=>({v:i,l:String(i)}));
+        steps.forEach(s=>{
             const b=document.createElement("button");
-            b.className="sc-btn"+(cv===v?" sel":"");
-            b.textContent=v;
-            if(cv===v){b.style.background=col.m;b.style.borderColor=col.m;b.style.color="#fff";}
-            b.addEventListener("mouseenter",()=>{if(S.ans[cat]?.[qi]!==v){b.style.background=col.g;b.style.borderColor=col.m}});
-            b.addEventListener("mouseleave",()=>{if(S.ans[cat]?.[qi]!==v){b.style.background="";b.style.borderColor=""}});
-            b.addEventListener("click",()=>{S.ans[cat][qi]=v;render()});
+            b.className="sc-btn"+(cv===s.v?" sel":"");
+            b.style.borderColor=btnColors[s.v];
+            b.style.background=btnColors[s.v]+"20";
+            if(cv===s.v){b.style.background=col.m;b.style.borderColor=col.m;b.style.color="#fff";}
+            const num=document.createElement("span");num.className="sc-btn-num";num.textContent=s.l;b.append(num);
+            if(btnLabels[s.v]){const sub=document.createElement("span");sub.className="sc-btn-sub";sub.textContent=btnLabels[s.v];b.append(sub);}
+            b.addEventListener("mouseenter",()=>{if(S.ans[cat]?.[qi]!==s.v){b.style.background=btnColors[s.v]+"50";b.style.borderColor=col.m}});
+            b.addEventListener("mouseleave",()=>{if(S.ans[cat]?.[qi]!==s.v){b.style.background=btnColors[s.v]+"20";b.style.borderColor=btnColors[s.v]}});
+            b.addEventListener("click",()=>{S.ans[cat][qi]=s.v;render()});
             btns.append(b);
-        }
+        });
         qcard.append(btns);
         qlist.append(qcard);
     });
