@@ -1,5 +1,5 @@
-/* ── NEUROPROFILE — app.js v12 ─────────────────────────────────────── */
-console.log("NeuroProfile v12 loaded");
+/* ── NEUROPROFILE — app.js v15 ─────────────────────────────────────── */
+console.log("NeuroProfile v15 loaded");
 const CATS=["autism","adhd","giftedness","overlap"];
 
 /* Colors: muted gold, purple, teal, sage — matching buttons/dots/badges */
@@ -154,7 +154,7 @@ function radar(sc){
   const isDark=S.dark;
   const DOT_COL="#B48E4E";
   const BLUE_S=isDark?"#5B8FD7":"#2B5EA7";
-  const BLUE_F=isDark?"rgba(91,143,215,0.10)":"rgba(43,94,167,0.06)";
+  const BLUE_F=isDark?"rgba(91,143,215,0.08)":"rgba(43,94,167,0.04)";
   const DARK=isDark?"#6A6D72":"#9A9DA1";
   const LIGHT=isDark?"#3A3D42":"#B4B6BA";
   const TXT=isDark?"#c8c8cc":"#444";
@@ -314,7 +314,7 @@ async function downloadPDF(){
     function pageBg(){pdf.setFillColor(...BG);pdf.rect(0,0,W,H,"F");}
     function phdr(){
       pdf.setFontSize(6);pdf.setFont("helvetica","normal");pdf.setTextColor(...TX3);
-      const htext=`NEUROPROFILE  ·  ${(S.name||"PROFILE").toUpperCase()}  ·  ${new Date().toLocaleDateString("en-US",{month:"long",year:"numeric"}).toUpperCase()}  ·  Not a clinical diagnosis`;
+      const htext=`NeuroProfile  ·  ${(S.name||"Profile").toUpperCase()}  ·  ${new Date().toLocaleDateString("en-US",{month:"long",year:"numeric"}).toUpperCase()}  ·  Not a clinical diagnosis`;
       pdf.text(htext,W/2,9,{align:"center"});
       pdf.setDrawColor(230,225,218);pdf.setLineWidth(0.3);pdf.line(ML,12,W-MR,12);
     }
@@ -342,7 +342,7 @@ async function downloadPDF(){
     // ═══ PAGE 1: Title + Diagnosis + Scores ═══
     y=28;
     pdf.setFontSize(24);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
-    pdf.text("NEUROPROFILE",W/2,y,{align:"center"});y+=8;
+    pdf.text("NeuroProfile",W/2,y,{align:"center"});y+=8;
     pdf.setFontSize(10);pdf.setFont("helvetica","normal");pdf.setTextColor(...hex(dc.hex));
     pdf.text(safe((S.name||"Your")+" - Mind Map"),W/2,y,{align:"center"});y+=5;
     pdf.setFontSize(7.5);pdf.setFont("helvetica","normal");pdf.setTextColor(...TX3);
@@ -387,36 +387,138 @@ async function downloadPDF(){
     });
 
     // ═══ RADAR ═══
-    np(80);y+=6;
+    np(120);y+=4;
     label("RADAR PROFILE",TX3);gap(2);
-    const rcx=W/2, rcy=y+34, rr=32;
-    // Grid
-    [.2,.4,.6,.8,1].forEach(f=>{
-      const r=rr*f;pdf.setDrawColor(218,214,208);pdf.setLineWidth(f===1?.35:.12);
-      const p=[{x:rcx,y:rcy-r},{x:rcx+r,y:rcy},{x:rcx,y:rcy+r},{x:rcx-r,y:rcy}];
-      for(let i=0;i<4;i++)pdf.line(p[i].x,p[i].y,p[(i+1)%4].x,p[(i+1)%4].y);
+
+    // Layout constants
+    const rSz=70; // octagon radius
+    const rcx=W/2, rcy=y+rSz+10;
+    const sqHalf=rSz*1.08; // square slightly bigger than octagon
+    const sqL=rcx-sqHalf, sqT=rcy-sqHalf, sqW=sqHalf*2;
+
+    const pol=(aDeg,r)=>{const rd=((aDeg-90)*Math.PI)/180;return{x:rcx+r*Math.cos(rd),y:rcy+r*Math.sin(rd)};};
+    const angles=[0,45,90,135,180,225,270,315];
+
+    // 8 sub-scores
+    const vv=(cat,i)=>S.ans[cat]?.[i]??5;
+    const bld=(cat,qi)=>Math.min(10,Math.max(0,Math.round(sc[cat]*0.06+vv(cat,qi)*0.4)));
+    const subSc=[bld("giftedness",0),bld("giftedness",9),bld("overlap",1),bld("overlap",6),bld("adhd",1),bld("adhd",4),bld("autism",3),bld("autism",1)];
+
+    // Outer label positions
+    const outerOff=24;
+    const outerPos=[
+      {lbl:"SYSTEMS",   x:rcx,          y:rcy-sqHalf-outerOff,al:"center"},
+      {lbl:"PREDICTION",x:rcx+sqHalf+outerOff-4,y:rcy-sqHalf-outerOff+8,al:"left"},
+      {lbl:"INTENSITY", x:rcx+sqHalf+outerOff,  y:rcy,al:"left"},
+      {lbl:"CURIOSITY", x:rcx+sqHalf+outerOff-4,y:rcy+sqHalf+outerOff-8,al:"left"},
+      {lbl:"NOVELTY",   x:rcx,          y:rcy+sqHalf+outerOff,al:"center"},
+      {lbl:"SPEED",     x:rcx-sqHalf-outerOff+4,y:rcy+sqHalf+outerOff-8,al:"right"},
+      {lbl:"PATTERNS",  x:rcx-sqHalf-outerOff,  y:rcy,al:"right"},
+      {lbl:"FOCUS",     x:rcx-sqHalf-outerOff+4,y:rcy-sqHalf-outerOff+8,al:"right"},
+    ];
+    const axColors=[COL.giftedness,COL.giftedness,COL.overlap,COL.overlap,COL.adhd,COL.adhd,COL.autism,COL.autism];
+
+    // Dashed lines from center to outer labels
+    pdf.setDrawColor(180,182,186);pdf.setLineWidth(0.2);
+    outerPos.forEach(o=>{
+      // Draw dashed line manually (jsPDF doesn't support dasharray natively for lines)
+      const dx=o.x-rcx,dy2=o.y-rcy;const len=Math.sqrt(dx*dx+dy2*dy2);
+      const steps=Math.floor(len/1.5);
+      for(let s=0;s<steps;s+=2){
+        const t1=s/steps,t2=Math.min((s+1)/steps,1);
+        pdf.line(rcx+dx*t1,rcy+dy2*t1,rcx+dx*t2,rcy+dy2*t2);
+      }
     });
-    // Axes + shape
-    const axes=[{k:"giftedness",dx:0,dy:-1},{k:"overlap",dx:1,dy:0},{k:"adhd",dx:0,dy:1},{k:"autism",dx:-1,dy:0}];
-    const pts=axes.map(a=>({x:rcx+a.dx*rr*(sc[a.k]/100),y:rcy+a.dy*rr*(sc[a.k]/100)}));
-    pdf.setFillColor(68,140,140);
-    try{pdf.saveGraphicsState();pdf.setGState(new pdf.GState({opacity:0.12}));
-      pdf.triangle(pts[0].x,pts[0].y,pts[1].x,pts[1].y,pts[2].x,pts[2].y,"F");
-      pdf.triangle(pts[0].x,pts[0].y,pts[2].x,pts[2].y,pts[3].x,pts[3].y,"F");
+
+    // Square border
+    pdf.setDrawColor(154,157,161);pdf.setLineWidth(0.4);
+    pdf.rect(sqL,sqT,sqW,sqW);
+
+    // 10 octagonal grid rings
+    for(let lv=1;lv<=10;lv++){
+      const isDk=lv===5||lv===10;
+      pdf.setDrawColor(isDk?154:180,isDk?157:182,isDk?161:186);
+      pdf.setLineWidth(isDk?0.3:0.12);
+      const pts=angles.map(a=>pol(a,rSz*(lv/10)));
+      for(let i=0;i<8;i++){
+        const p1=pts[i],p2=pts[(i+1)%8];
+        pdf.line(p1.x,p1.y,p2.x,p2.y);
+      }
+    }
+
+    // Tick dots on axes
+    pdf.setFillColor(154,157,161);
+    angles.forEach(a=>{
+      for(let lv=1;lv<=10;lv++){
+        const p=pol(a,rSz*(lv/10));
+        pdf.circle(p.x,p.y,0.4,"F");
+      }
+    });
+
+    // Data shape
+    const dataPts=subSc.map((val,i)=>pol(angles[i],rSz*(val/10)));
+    // Fill (very subtle)
+    pdf.setFillColor(43,94,167);
+    try{pdf.saveGraphicsState();pdf.setGState(new pdf.GState({opacity:0.04}));
+      // Draw filled polygon as triangles from center
+      for(let i=0;i<8;i++){
+        const p1=dataPts[i],p2=dataPts[(i+1)%8];
+        pdf.triangle(rcx,rcy,p1.x,p1.y,p2.x,p2.y,"F");
+      }
       pdf.restoreGraphicsState();}catch(e){}
-    pdf.setDrawColor(68,140,140);pdf.setLineWidth(.7);
-    for(let i=0;i<4;i++)pdf.line(pts[i].x,pts[i].y,pts[(i+1)%4].x,pts[(i+1)%4].y);
-    // Labels
-    const lpos=[{x:rcx,y:rcy-rr-8,al:"center"},{x:rcx+rr+6,y:rcy+1,al:"left"},{x:rcx,y:rcy+rr+6,al:"center"},{x:rcx-rr-6,y:rcy+1,al:"right"}];
-    axes.forEach((a,i)=>{
-      const col=hex(COL[a.k].hex);
-      pdf.setFillColor(...col);pdf.circle(pts[i].x,pts[i].y,2,"F");
-      pdf.setFontSize(9);pdf.setFont("helvetica","bold");pdf.setTextColor(...col);
-      pdf.text(a.k.charAt(0).toUpperCase()+a.k.slice(1),lpos[i].x,lpos[i].y,{align:lpos[i].al});
-      pdf.setFontSize(12);pdf.setFont("helvetica","bold");pdf.setTextColor(...hex(COL[a.k].hexD));
-      pdf.text(sc[a.k]+"%",lpos[i].x,lpos[i].y+5,{align:lpos[i].al});
+    // Stroke
+    pdf.setDrawColor(43,94,167);pdf.setLineWidth(0.6);
+    for(let i=0;i<8;i++){
+      const p1=dataPts[i],p2=dataPts[(i+1)%8];
+      pdf.line(p1.x,p1.y,p2.x,p2.y);
+    }
+
+    // Domain labels INSIDE grid
+    pdf.setFontSize(7);pdf.setFont("helvetica","normal");pdf.setTextColor(68,68,68);
+    // GIFTEDNESS top
+    pdf.text("GIFTEDNESS",rcx,rcy-rSz*0.5,{align:"center",charSpace:0.8});
+    // ADHD bottom
+    pdf.text("ADHD",rcx,rcy+rSz*0.54,{align:"center",charSpace:0.8});
+    // OVERLAP right — draw vertically
+    const ovX=rcx+rSz*0.48;
+    "OVERLAP".split("").forEach((ch2,ci)=>{
+      pdf.text(ch2,ovX,rcy-12+ci*4,{align:"center"});
     });
-    y=rcy+rr+20;
+    // AUTISM left — draw vertically (bottom to top)
+    const auX=rcx-rSz*0.48;
+    "AUTISM".split("").reverse().forEach((ch2,ci)=>{
+      pdf.text(ch2,auX,rcy-10+ci*4,{align:"center"});
+    });
+
+    // Gold dots + outer sub-labels
+    outerPos.forEach((o,i)=>{
+      const col=hex(axColors[i].hex);
+      // Gold dot
+      pdf.setFillColor(180,142,78);pdf.circle(o.x,o.y,2.5,"F");
+      // Label
+      pdf.setFontSize(6.5);pdf.setFont("helvetica","bold");pdf.setTextColor(68,68,68);
+      const yOff=o.al==="center"?(o.y<rcy?-5:6):0;
+      const xOff=o.al==="left"?5:o.al==="right"?-5:0;
+      pdf.text(o.lbl,o.x+xOff,o.y+yOff,{align:o.al});
+    });
+
+    // Score bar at bottom of radar
+    y=rcy+sqHalf+outerOff+16;
+    const barW2=pw*0.85;
+    const barX2=ML+(pw-barW2)/2;
+    const cellW2=barW2/4;
+    pdf.setDrawColor(200,200,200);pdf.setLineWidth(0.25);
+    pdf.setFillColor(250,250,250);pdf.rect(barX2,y-4,barW2,10,"FD");
+    [{k:"giftedness",l:"Giftedness:"},{k:"adhd",l:"ADHD:"},{k:"autism",l:"Autism:"},{k:"overlap",l:"Overlap:"}].forEach((c,i)=>{
+      const cx2=barX2+cellW2*i;
+      if(i>0){pdf.setDrawColor(200,200,200);pdf.line(cx2,y-4,cx2,y+6);}
+      const tx=cx2+cellW2/2;
+      pdf.setFontSize(6.5);pdf.setFont("helvetica","normal");pdf.setTextColor(102,102,102);
+      pdf.text(c.l,tx-3,y+2,{align:"right"});
+      pdf.setFontSize(8);pdf.setFont("helvetica","bold");pdf.setTextColor(59,140,59);
+      pdf.text(sc[c.k]+"%",tx+1,y+2,{align:"left"});
+    });
+    y+=16;
 
     // Tens
     if(tn.length){
@@ -541,13 +643,14 @@ function renderIntro(){
 
   w.append(h("p","intro-warn au au3",["This is not a clinical diagnosis. A reflective profiling tool."]));
 
-  const inp=document.createElement("input");inp.className="name-inp au au4";inp.type="text";inp.placeholder="Your name (optional)";inp.value=S.name;
-  inp.addEventListener("input",e=>S.name=e.target.value);
+  const inp=document.createElement("input");inp.className="name-inp au au4";inp.type="text";inp.placeholder="Your name";inp.value=S.name;inp.required=true;
+  inp.addEventListener("input",e=>{S.name=e.target.value;btn.disabled=!S.name.trim();btn.style.opacity=S.name.trim()?"1":"0.4";});
   const ic=h("div","name-wrap",[]);ic.append(inp);w.append(ic);
 
   const bc=h("div","start-wrap au au5",[]);
   const btn=h("button","btn",["BEGIN ASSESSMENT"]);
-  btn.addEventListener("click",()=>{S.scr="quiz";S.ci=0;render()});
+  btn.disabled=!S.name.trim();btn.style.opacity=S.name.trim()?"1":"0.4";
+  btn.addEventListener("click",()=>{if(!S.name.trim()){inp.focus();return;}S.scr="quiz";S.ci=0;render()});
   bc.append(btn);w.append(bc);
 
   w.append(h("p","disc au au5",["For self-reflection only. Does not replace clinical evaluation."]));
@@ -685,8 +788,8 @@ function renderReport(){
   const now=new Date().toLocaleDateString("en-US",{month:"long",year:"numeric"}).toUpperCase();
   const w=h("div","wrap",[]);w.id="report-content";
 
-  w.append(h("div","rpt-bar",[`NEUROPROFILE · ${(S.name||"PROFILE").toUpperCase()} · ${now} · Not a clinical diagnosis`]));
-  w.append(h("h1","rpt-title",["NEUROPROFILE"]));
+  w.append(h("div","rpt-bar",[`NeuroProfile · ${(S.name||"Profile").toUpperCase()} · ${now} · Not a clinical diagnosis`]));
+  w.append(h("h1","rpt-title",["NeuroProfile"]));
   const sub=h("p","rpt-sub",[(S.name||"Your")+" — Mind Map"]);sub.style.color=dc.m;w.append(sub);
   w.append(h("p","rpt-meta",["Analysis of Autism, ADHD, Giftedness and Overlap traits"]));
 
