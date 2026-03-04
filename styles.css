@@ -239,7 +239,7 @@ body { font-family: var(--font-sans); font-size: var(--fs-0); line-height: var(-
 
 .s-row { margin-bottom: var(--s-8); } .s-row:last-child { margin-bottom: 0; }
 .s-hdr { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; gap: var(--s-3); }
-.s-lbl { font-weight: 800; font-size: 1.15rem; text-transform: uppercase; letter-spacing: 2.5px; }
+.s-lbl { font-weight: 800; font-size: 1.4rem; text-transform: uppercase; letter-spacing: 2.5px; }
 .s-row:nth-child(1) .s-lbl { color: rgb(var(--c-au)) !important; }
 .s-row:nth-child(2) .s-lbl { color: rgb(var(--c-ad)) !important; }
 .s-row:nth-child(3) .s-lbl { color: rgb(var(--c-gi)) !important; }
@@ -261,6 +261,10 @@ body { font-family: var(--font-sans); font-size: var(--fs-0); line-height: var(-
 
 .card-radar { text-align: center; padding: clamp(1.5rem, 2.5vw, 2.5rem); background: rgba(255,255,255,0.92); }
 [data-theme="dark"] .card-radar { background: rgba(24, 26, 38, 0.8); }
+[data-theme="light"] .card-radar svg text:not(.rv):not(.rl) { fill: #000000 !important; }
+[data-theme="dark"] .card-radar svg text:not(.rv):not(.rl) { fill: #d0d0d4 !important; }
+.card-radar svg text.rv { }
+.card-radar svg text.rl { }
 .radar-svg { width: 100%; max-width: 960px; margin: 0 auto; display: block; font-family: var(--font-sans); }
 .r-grid,.r-grid-o,.r-axis,.r-square,.r-dot,.r-label-dot,.r-lbl,.r-val,.r-domain-lbl,.r-bar-label,.r-bar-val { }
 .r-shape { }
@@ -268,7 +272,7 @@ body { font-family: var(--font-sans); font-size: var(--fs-0); line-height: var(-
 .ten { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--brd2); }
 .ten:last-child { border-bottom: none; }
 .ten-b { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; color: #fff; font-size: 1.15rem; font-weight: 900; flex-shrink: 0; }
-.ten-t { font-size: var(--fs-0); font-weight: 300; flex: 1; color: var(--tx2); line-height: 1.85; }
+.ten-t { font-size: var(--fs-0); font-weight: 500; flex: 1; color: var(--tx2); line-height: 1.85; }
 .ten-c { font-size: .88rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--tx3); }
 
 .sc-table { overflow: hidden; }

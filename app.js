@@ -231,38 +231,80 @@ function radar(sc){
 
     // Domain labels inside — all same size, equal distance from edge (~82%)
     const dFS="16",dFW="800",dLS="5";
-    const gt2=hs("text",{x:CX,y:CY-R*0.82,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":dLS,fill:TXT});gt2.textContent="GIFTEDNESS";svg.append(gt2);
-    const ab2=hs("text",{x:CX,y:CY+R*0.82,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":dLS,fill:TXT});ab2.textContent="ADHD";svg.append(ab2);
-    const ov2=hs("text",{x:CX+R*0.82,y:CY,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":"4",fill:TXT,"writing-mode":"vertical-rl",style:"text-orientation:mixed"});ov2.textContent="OVERLAP";svg.append(ov2);
+    const forceFill=`fill:${TXT} !important`;
+    // GIFTEDNESS top
+    const gt2=document.createElementNS("http://www.w3.org/2000/svg","text");
+    gt2.setAttribute("x",CX);gt2.setAttribute("y",CY-R*0.82);
+    gt2.setAttribute("text-anchor","middle");gt2.setAttribute("dominant-baseline","central");
+    gt2.setAttribute("font-size",dFS);gt2.setAttribute("font-weight",dFW);gt2.setAttribute("letter-spacing",dLS);
+    gt2.style.cssText=forceFill;gt2.textContent="GIFTEDNESS";svg.append(gt2);
+    // ADHD bottom
+    const ab2=document.createElementNS("http://www.w3.org/2000/svg","text");
+    ab2.setAttribute("x",CX);ab2.setAttribute("y",CY+R*0.82);
+    ab2.setAttribute("text-anchor","middle");ab2.setAttribute("dominant-baseline","central");
+    ab2.setAttribute("font-size",dFS);ab2.setAttribute("font-weight",dFW);ab2.setAttribute("letter-spacing",dLS);
+    ab2.style.cssText=forceFill;ab2.textContent="ADHD";svg.append(ab2);
+    // OVERLAP right
+    const ov2=document.createElementNS("http://www.w3.org/2000/svg","text");
+    ov2.setAttribute("x",CX+R*0.82);ov2.setAttribute("y",CY);
+    ov2.setAttribute("text-anchor","middle");ov2.setAttribute("dominant-baseline","central");
+    ov2.setAttribute("font-size",dFS);ov2.setAttribute("font-weight",dFW);ov2.setAttribute("letter-spacing","4");
+    ov2.setAttribute("writing-mode","vertical-rl");
+    ov2.style.cssText=`${forceFill};text-orientation:mixed`;
+    ov2.textContent="OVERLAP";svg.append(ov2);
+    // AUTISM left
     const lx3=CX-R*0.82;
-    const au2=hs("text",{x:lx3,y:CY,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":"4",fill:TXT,"writing-mode":"vertical-rl",transform:`rotate(180,${lx3.toFixed(1)},${CY})`,style:"text-orientation:mixed"});au2.textContent="AUTISM";svg.append(au2);
+    const au2=document.createElementNS("http://www.w3.org/2000/svg","text");
+    au2.setAttribute("x",lx3);au2.setAttribute("y",CY);
+    au2.setAttribute("text-anchor","middle");au2.setAttribute("dominant-baseline","central");
+    au2.setAttribute("font-size",dFS);au2.setAttribute("font-weight",dFW);au2.setAttribute("letter-spacing","4");
+    au2.setAttribute("writing-mode","vertical-rl");au2.setAttribute("transform",`rotate(180,${lx3.toFixed(1)},${CY})`);
+    au2.style.cssText=`${forceFill};text-orientation:mixed`;
+    au2.textContent="AUTISM";svg.append(au2);
 
-    // Gold dots + outer sub-labels — all black in light mode
+    // Gold dots + outer sub-labels
     outer.forEach((d,i)=>{
         const lp=labelPos[i];
         svg.append(hs("circle",{cx:d.cx,cy:d.cy,r:"9",fill:DOT_COL}));
-        const t=hs("text",{x:(d.cx+lp.dx),y:(d.cy+lp.dy),"text-anchor":lp.anchor,"dominant-baseline":"central","font-size":"14","font-weight":"700","letter-spacing":"1.5",fill:TXT});
-        t.textContent=d.label;svg.append(t);
+        const t=document.createElementNS("http://www.w3.org/2000/svg","text");
+        t.setAttribute("x",d.cx+lp.dx);t.setAttribute("y",d.cy+lp.dy);
+        t.setAttribute("text-anchor",lp.anchor);t.setAttribute("dominant-baseline","central");
+        t.setAttribute("font-size","14");t.setAttribute("font-weight","700");t.setAttribute("letter-spacing","1.5");
+        t.style.cssText=forceFill;t.textContent=d.label;svg.append(t);
     });
 
-    // Score bar — wide, transparent, centered text per cell
+    // Score bar — single line: Label Value | Label Value | ...
     const barY=H-50;
     const barW=W*0.86;
     const barX=(W-barW)/2;
     const cats=[
-        {k:"giftedness",l:"Giftedness:"},
-        {k:"adhd",l:"ADHD:"},
-        {k:"autism",l:"Autism:"},
-        {k:"overlap",l:"Overlap:"},
+        {k:"giftedness",l:"Giftedness:",cl:"rgb(68,140,140)"},
+        {k:"adhd",l:"ADHD:",cl:"rgb(126,92,156)"},
+        {k:"autism",l:"Autism:",cl:"rgb(180,142,78)"},
+        {k:"overlap",l:"Overlap:",cl:"rgb(108,132,100)"},
     ];
     const cellW=barW/4;
-    svg.append(hs("rect",{x:barX,y:barY-26,width:barW,height:52,rx:"8",fill:BAR_BG,stroke:BAR_BORDER,"stroke-width":"1"}));
+    const barH=56;
+    svg.append(hs("rect",{x:barX,y:barY-barH/2,width:barW,height:barH,rx:"10",fill:BAR_BG,stroke:BAR_BORDER,"stroke-width":"1"}));
     cats.forEach((c,i)=>{
         const cx2=barX+cellW*i;
-        if(i>0)svg.append(hs("line",{x1:cx2,y1:barY-26,x2:cx2,y2:barY+26,stroke:BAR_BORDER,"stroke-width":"0.8"}));
+        if(i>0)svg.append(hs("line",{x1:cx2,y1:barY-barH/2,x2:cx2,y2:barY+barH/2,stroke:BAR_BORDER,"stroke-width":"0.8"}));
         const mid=cx2+cellW/2;
-        const lt=hs("text",{x:mid,y:barY-7,"text-anchor":"middle","dominant-baseline":"central","font-size":"13",fill:BAR_TXT});lt.textContent=c.l;svg.append(lt);
-        const vt=hs("text",{x:mid,y:barY+11,"text-anchor":"middle","dominant-baseline":"central","font-size":"22","font-weight":"700",fill:GRN});vt.textContent=sc[c.k]+"%";svg.append(vt);
+        // Label (colored, bold)
+        const lt=document.createElementNS("http://www.w3.org/2000/svg","text");
+        lt.setAttribute("x",mid-4);lt.setAttribute("y",barY);
+        lt.setAttribute("text-anchor","end");lt.setAttribute("dominant-baseline","central");
+        lt.setAttribute("font-size","15");lt.setAttribute("font-weight","700");lt.setAttribute("letter-spacing","0.3");
+        lt.setAttribute("class","rl");
+        lt.style.cssText=`fill:${c.cl} !important`;lt.textContent=c.l;svg.append(lt);
+        // Value (black on light, white on dark) — forced with !important
+        const numColor=isDark?"#e8e9f0":"#000000";
+        const vt=document.createElementNS("http://www.w3.org/2000/svg","text");
+        vt.setAttribute("x",mid+2);vt.setAttribute("y",barY);
+        vt.setAttribute("text-anchor","start");vt.setAttribute("dominant-baseline","central");
+        vt.setAttribute("font-size","20");vt.setAttribute("font-weight","900");
+        vt.setAttribute("class","rv");
+        vt.style.cssText=`fill:${numColor} !important`;vt.textContent=sc[c.k]+"%";svg.append(vt);
     });
 
     return svg;
