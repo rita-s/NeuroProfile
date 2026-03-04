@@ -239,7 +239,7 @@ body { font-family: var(--font-sans); font-size: var(--fs-0); line-height: var(-
 
 .s-row { margin-bottom: var(--s-8); } .s-row:last-child { margin-bottom: 0; }
 .s-hdr { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; gap: var(--s-3); }
-.s-lbl { font-weight: 800; font-size: 1.4rem; text-transform: uppercase; letter-spacing: 2.5px; }
+.s-lbl { font-weight: 800; font-size: 1.15rem; text-transform: uppercase; letter-spacing: 2.5px; }
 .s-row:nth-child(1) .s-lbl { color: rgb(var(--c-au)) !important; }
 .s-row:nth-child(2) .s-lbl { color: rgb(var(--c-ad)) !important; }
 .s-row:nth-child(3) .s-lbl { color: rgb(var(--c-gi)) !important; }
