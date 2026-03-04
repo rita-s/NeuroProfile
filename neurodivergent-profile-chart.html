@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroProfile Report Generator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',Tahoma,sans-serif;background:#fff;display:flex;justify-content:center;padding:20px 10px}
+    .container{width:900px;max-width:100%}
+    #chart{width:100%;display:block}
+    .btn-wrap{display:flex;justify-content:center;margin-top:24px;gap:16px}
+    .btn{border:none;border-radius:8px;padding:14px 40px;font-size:16px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:opacity .2s}
+    .btn-primary{background:#B48E4E;color:#fff}
+    .btn:hover{opacity:.85}
+    .btn:disabled{opacity:.6;cursor:wait}
+  </style>
+</head>
+<body>
+<div class="container">
+  <canvas id="chart"></canvas>
+  <div class="btn-wrap">
+    <button class="btn btn-primary" id="downloadBtn" onclick="downloadPDF()">Download NeuroProfile Report</button>
+  </div>
+</div>
+
+<script>
+  // ============ CHART ENGINE ============
+  const DOT_C="#B48E4E",BLUE_S="#2B5EA7",BLUE_F="rgba(43,94,167,0.06)",DK="#9A9DA1",LT="#B4B6BA",TXT="#444",GRN="#3B8C3B";
+  const axes=[0,45,90,135,180,225,270,315], scores=[7,4,9,3,2,6,5,8];
+  const pLabels=["SYSTEMS","PREDICTION","INTENSITY","CURIOSITY","NOVELTY","SPEED","PATTERNS","FOCUS"];
+  function pol(a,r,cx,cy){const d=((a-90)*Math.PI)/180;return[cx+r*Math.cos(d),cy+r*Math.sin(d)]}
+
+  function drawChart(cv,sc,cfg){
+    const{w,h,cx,cy,r,sl,st,sw,sh,dr}=cfg;const sr=sl+sw,sb=st+sh;
+    const od=[
+      {l:pLabels[0],cx:cx,cy:st-dr*4.5},{l:pLabels[1],cx:sr+dr*4,cy:st-dr*3.8},
+      {l:pLabels[2],cx:sr+dr*4.5,cy:cy},{l:pLabels[3],cx:sr+dr*4,cy:sb+dr*3.8},
+      {l:pLabels[4],cx:cx,cy:sb+dr*5.5},{l:pLabels[5],cx:sl-dr*4,cy:sb+dr*3.8},
+      {l:pLabels[6],cx:sl-dr*4.5,cy:cy},{l:pLabels[7],cx:sl-dr*4,cy:st-dr*3.8}
+    ];
+    const lo=[
+      {dy:-dr*2.5,dx:0,a:"center"},{dy:-dr*2.3,dx:0,a:"center"},
+      {dy:0,dx:dr*2.2,a:"left"},{dy:dr*2.3,dx:0,a:"center"},
+      {dy:dr*2.8,dx:0,a:"center"},{dy:dr*2.3,dx:0,a:"center"},
+      {dy:0,dx:-dr*2.2,a:"right"},{dy:-dr*2.3,dx:0,a:"center"}
+    ];
+    cv.width=w*sc;cv.height=h*sc;
+    const c=cv.getContext("2d");c.scale(sc,sc);c.fillStyle="#FFF";c.fillRect(0,0,w,h);
+    od.forEach(d=>{c.beginPath();c.moveTo(cx,cy);c.lineTo(d.cx,d.cy);c.strokeStyle=LT;c.lineWidth=1;c.setLineDash([6,5]);c.stroke();c.setLineDash([])});
+    c.strokeStyle=DK;c.lineWidth=1.6;c.strokeRect(sl,st,sw,sh);
+    for(let lv=1;lv<=10;lv++){const dk=lv===5||lv===10;c.beginPath();for(let i=0;i<8;i++){const[x,y]=pol(i*45,r*(lv/10),cx,cy);i===0?c.moveTo(x,y):c.lineTo(x,y)}c.closePath();c.strokeStyle=dk?DK:LT;c.lineWidth=dk?1.4:.7;c.stroke()}
+    axes.forEach(a=>{for(let lv=1;lv<=10;lv++){const[x,y]=pol(a,r*(lv/10),cx,cy);c.beginPath();c.arc(x,y,1.8,0,Math.PI*2);c.fillStyle=DK;c.fill()}});
+    c.beginPath();scores.forEach((v,i)=>{const[x,y]=pol(axes[i],r*(v/10),cx,cy);i===0?c.moveTo(x,y):c.lineTo(x,y)});c.closePath();c.fillStyle=BLUE_F;c.fill();c.strokeStyle=BLUE_S;c.lineWidth=2.5;c.lineJoin="round";c.stroke();
+    c.fillStyle=TXT;c.textAlign="center";c.textBaseline="middle";const fs=cfg.fs||18;c.font=`${fs}px 'Segoe UI',sans-serif`;
+    c.fillText("G I F T E D N E S S",cx,cy-r*.78);c.fillText("A D H D",cx,cy+r*.80);
+    c.save();c.translate(cx+r*.78,cy);c.rotate(Math.PI/2);c.fillText("O V E R L A P",0,0);c.restore();
+    c.save();c.translate(cx-r*.78,cy);c.rotate(-Math.PI/2);c.fillText("A U T I S M",0,0);c.restore();
+    od.forEach((d,i)=>{c.beginPath();c.arc(d.cx,d.cy,dr,0,Math.PI*2);c.fillStyle=DOT_C;c.fill();const p=lo[i];c.fillStyle=TXT;c.font=`bold ${(cfg.lfs||14)}px 'Segoe UI',sans-serif`;c.textBaseline="middle";c.textAlign=p.a==="left"?"left":p.a==="right"?"right":"center";c.fillText(d.l,d.cx+p.dx,d.cy+p.dy)});
+  }
+
+  const sCfg={w:1000,h:860,cx:500,cy:390,r:220,sl:230,st:110,sw:480,sh:480,dr:13,fs:18,lfs:14};
+  const pCfg={w:800,h:720,cx:400,cy:330,r:175,sl:195,st:105,sw:380,sh:380,dr:10,fs:15,lfs:12};
+  window.addEventListener("DOMContentLoaded",()=>{const cv=document.getElementById("chart");drawChart(cv,window.devicePixelRatio||1,sCfg);cv.style.width="100%";cv.style.height="auto"});
+
+  // ============ PDF GENERATOR ============
+  const L="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.";
+  const LS="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.";
+  const LM="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.";
+  const L2="Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet consectetur.";
+  const L3="Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed perspiciatis unde omnis iste natus error voluptatem accusantium doloremque laudantium, totam rem aperiam eaque ipsa quae ab illo.";
+  const L4="Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo nemo enim.";
+  const FT="NeuroProfile \u00AE | Copyright \u00A9 2026 Rita Anstey. All rights reserved.";
+  const TEAL=[86,165,159], GOLD=[180,142,78], NAVY=[25,37,51], PURPLE=[165,130,175], OLIVE=[148,155,110];
+
+  function downloadPDF(){
+    const btn=document.getElementById("downloadBtn");btn.disabled=true;btn.textContent="Generating...";
+    try{
+      const{jsPDF}=window.jspdf;
+      const d=new jsPDF({orientation:"portrait",unit:"mm",format:"a4"});
+      const pw=210,ph=297,ml=25,mr=25,cw=pw-ml-mr;
+
+// Helpers
+      function setC(r,g,b){d.setTextColor(r,g,b)}
+      function sH(num,x,y){d.setFont("helvetica","bold");d.setFontSize(11);setC(...TEAL);d.text(String(num).padStart(2,"0"),x,y);d.setFont("helvetica","bold");d.setFontSize(14);setC(51,51,51)}
+      function hdr(num,title,y){
+        d.setFillColor(...GOLD);d.rect(ml-3,y,3,18,"F");
+        d.setFillColor(230,237,244);d.rect(ml+2,y,cw-2,18,"F");
+        d.setFont("helvetica","bold");d.setFontSize(12);setC(51,51,51);
+        d.text(`${String(num).padStart(2,"0")}  ${title}`,ml+8,y+11);
+      }
+      function foot(pg){d.setDrawColor(200);d.line(ml,ph-15,pw-mr,ph-15);d.setFontSize(6.5);setC(130,130,130);d.text(FT,ml,ph-10);d.setFont("helvetica","bold");d.setFontSize(9);d.text(String(pg).padStart(2,"0"),pw-mr,ph-10,{align:"right"})}
+      function body(t,x,y,mw){d.setFont("helvetica","normal");d.setFontSize(9.5);setC(51,51,51);d.text(t,x,y,{maxWidth:mw||cw,lineHeightFactor:1.6})}
+      function bold(t,x,y,sz){d.setFont("helvetica","bold");d.setFontSize(sz||11);setC(51,51,51);d.text(t,x,y)}
+      function tealBold(t,x,y,sz){d.setFont("helvetica","bold");d.setFontSize(sz||12);setC(...TEAL);d.text(t,x,y)}
+      function goldBold(t,x,y,sz){d.setFont("helvetica","bold");d.setFontSize(sz||12);setC(...GOLD);d.text(t,x,y)}
+      function placeholder(x,y,w,h){d.setDrawColor(180);d.setLineWidth(.4);d.rect(x,y,w,h);d.line(x,y,x+w,y+h);d.line(x+w,y,x,y+h)}
+
+// ===== P1: COVER =====
+      d.setFillColor(...NAVY);d.rect(0,0,pw,ph,"F");
+      d.setFont("helvetica","bold");d.setFontSize(14);setC(...TEAL);d.text("NEUROPROFILE",pw/2,45,{align:"center"});
+      d.setFont("helvetica","bold");d.setFontSize(38);setC(220,220,220);d.text("Neurodiversity",pw/2,115,{align:"center"});d.text("Profile Report",pw/2,135,{align:"center"});
+// 4 dots
+      const dotColors=[[180,142,78],[130,175,165],[165,130,175],[148,155,110]];
+      const dotX=[pw/2-52,pw/2-17,pw/2+17,pw/2+52];
+      dotColors.forEach((c,i)=>{d.setFillColor(...c);d.circle(dotX[i],162,6,"F")});
+      d.setFont("helvetica","bold");d.setFontSize(14);setC(180,180,190);d.text("February 2026",pw/2,205,{align:"center"});
+      d.setFont("helvetica","normal");d.setFontSize(11);setC(130,140,150);d.text("Giftedness \u00B7 Overlap \u00B7 ADHD \u00B7 Autism",pw/2,218,{align:"center"});
+      d.setFontSize(10);d.text("Assessment System for Neurodivergent Profiles",pw/2,230,{align:"center"});
+      d.setFontSize(6.5);setC(100,110,120);d.text(FT,pw/2,ph-12,{align:"center"});
+
+// ===== P2: CONTENTS =====
+      d.addPage();
+      hdr("","CONTENTS",25);
+      const toc=[["Profile Diagnosis","Your neurodiversity map at a glance"],["The Four Domains","Scores visualised \u2014 cards, radar & bars"],["Your Tens","Top traits scored at maximum intensity"],["Superpowers & Kryptonite","Your formula: strengths and challenges"],["Deep Dive","What this combination means for you"],["Recommendations","What to do with this profile"]];
+      toc.forEach((t,i)=>{
+        const y=70+i*35;
+        d.setFont("helvetica","normal");d.setFontSize(24);setC(...TEAL);d.text(String(i+1).padStart(2,"0"),ml,y+5);
+        d.setFont("helvetica","bold");d.setFontSize(13);setC(51,51,51);d.text(t[0],ml+25,y);
+        d.setFont("helvetica","normal");d.setFontSize(9.5);setC(120,120,120);d.text(t[1],ml+25,y+8);
+        d.setDrawColor(...TEAL);d.setLineWidth(.3);d.line(ml+25,y+14,pw-mr,y+14);
+      });
+      foot(2);
+
+// ===== P3: PROFILE DIAGNOSIS =====
+      d.addPage();
+      hdr("01","PROFILE DIAGNOSIS",25);
+      d.setFont("helvetica","bold");d.setFontSize(24);setC(51,51,51);d.text("Twice-Exceptional (2e)",ml,62);
+      tealBold("Gifted + ADHD with Autistic Superpowers",ml,74,11);
+      body(LM,ml,86,cw);
+// Two columns
+      const colW=(cw-8)/2;
+      body(L+" "+LS,ml,108,colW);
+      body(L2+" "+L2.substring(0,200),ml+colW+8,108,colW);
+// Placeholder image
+      placeholder(ml+colW+8,195,colW,35);
+      body(LM,ml,245,cw);
+      foot(3);
+
+// ===== P4: RADAR VIEW =====
+      d.addPage();
+      hdr("02","THE FOUR DOMAINS \u2014 RADAR VIEW",25);
+      const off=document.createElement("canvas");
+      drawChart(off,3,pCfg);
+      const img=off.toDataURL("image/png");
+      const iW=160,iH=iW*(pCfg.h/pCfg.w);
+      d.addImage(img,"PNG",(pw-iW)/2,48,iW,iH);
+      foot(4);
+
+// ===== P5: DOMAIN SCORE CARDS =====
+      d.addPage();
+      hdr("02","THE FOUR DOMAINS",25);
+      tealBold("Domain Score Cards",ml,55,10);
+      const cards=[{ab:"GI",name:"Giftedness",score:90,col:GOLD},{ab:"OV",name:"Overlap",score:97,col:TEAL},{ab:"AD",name:"ADHD",score:66,col:PURPLE},{ab:"AU",name:"Autism",score:42,col:OLIVE}];
+      cards.forEach((c,i)=>{
+        const cx=ml+i*(cw/4)+cw/8;
+        d.setFont("helvetica","bold");d.setFontSize(20);setC(...c.col);d.text(c.ab,cx,75,{align:"center"});
+        d.setFont("helvetica","normal");d.setFontSize(8);setC(120,120,120);d.text(c.name,cx,82,{align:"center"});
+        // Donut placeholder
+        d.setDrawColor(...c.col);d.setLineWidth(3);d.circle(cx,98,12);
+        d.setFont("helvetica","bold");d.setFontSize(18);setC(...c.col);d.text(String(c.score),cx,100,{align:"center"});
+        d.setFont("helvetica","normal");d.setFontSize(7);setC(120,120,120);d.text("%",cx+12,104,{align:"center"});
+      });
+      body(L+" "+LS,ml,125,cw);
+// Score table
+      const rows=[["Giftedness","90 / 100","Lorem ipsum dolor sit amet, consectetur adipiscing elit"],["Overlap","97 / 100","Sed do eiusmod tempor incididunt ut labore et dolore"],["ADHD","66 / 100","Ut enim ad minim veniam, quis nostrud exercitation"],["Autism","42 / 100","Duis aute irure dolor in reprehenderit in voluptate"]];
+      rows.forEach((r,i)=>{
+        const y=175+i*14;
+        d.setDrawColor(220);d.line(ml,y+4,pw-mr,y+4);
+        d.setFont("helvetica","bold");d.setFontSize(9.5);setC(...TEAL);d.text(r[0],ml,y);
+        d.setFont("helvetica","normal");setC(51,51,51);d.text(r[1],ml+35,y);
+        d.setFontSize(8.5);setC(100,100,100);d.text(r[2],ml+62,y);
+      });
+      body(L+" "+LS,ml,240,cw);
+      foot(5);
+
+// ===== P6: SCORE DISTRIBUTION =====
+      d.addPage();
+      hdr("02","THE FOUR DOMAINS \u2014 SCORE DISTRIBUTION",25);
+      tealBold("Comparative Score Analysis",ml,55,10);
+      const bars=[{name:"Giftedness",score:90,col:GOLD},{name:"Overlap",score:97,col:TEAL},{name:"ADHD",score:66,col:PURPLE},{name:"Autism",score:42,col:OLIVE}];
+      bars.forEach((b,i)=>{
+        const y=75+i*22;
+        d.setFont("helvetica","bold");d.setFontSize(10);setC(51,51,51);d.text(b.name,ml,y+5);
+        const bx=ml+30,bw=cw-55,bh=10;
+        d.setFillColor(220,225,230);d.rect(bx,y,bw,bh,"F");
+        d.setFillColor(...b.col);d.rect(bx,y,bw*(b.score/200),bh,"F");
+        d.setFillColor(...TEAL);d.rect(bx+bw*(b.score/200),y,bw*(b.score/200),bh,"F");
+        d.setFont("helvetica","bold");d.setFontSize(10);setC(51,51,51);d.text(b.score+"%",bx+bw+5,y+7);
+      });
+      body(L,ml,170,cw);
+      body(L3+" "+L3,ml,200,cw);
+      body(L,ml,240,cw);
+      foot(6);
+
+// ===== P7: YOUR TENS =====
+      d.addPage();
+      hdr("03","YOUR TENS \u2014 TRAITS AT MAXIMUM INTENSITY",25);
+      body("These 16 traits scored 10/10 in your assessment \u2014 the outer edges of your profile where neurodiversity is most concentrated and most powerful.",ml,52,cw);
+      const tens=[
+        {t:"Pattern Recognition",dom:"Autism",desc:"You see structure where others see noise. Your brain automatically extracts underlying rules, regularities, and connections from complex information."},
+        {t:"Systems Thinking",dom:"Giftedness",desc:"You do not think in isolated facts \u2014 you think in architectures. Every piece of information is immediately placed within a larger structure."},
+        {t:"Cross-Domain Knowledge Synthesis",dom:"Giftedness",desc:"You instinctively draw connections between fields that others treat as separate. Psychology, business, technology, spirituality, neuroscience."},
+        {t:"Predicting Consequences",dom:"Giftedness",desc:"You run mental simulations several steps ahead automatically. Where others react to what is happening, you are already modelling what will happen."},
+        {t:"Need for Logic & Justice",dom:"Giftedness",desc:"Arbitrary rules, inconsistent standards, and outcomes disconnected from merit create genuine cognitive dissonance for you."},
+        {t:"Need for Connection Through Complexity",dom:"Giftedness",desc:"Simple explanations feel insufficient. You need to understand the full architecture of an idea before you can truly engage with it."}
+      ];
+      tens.forEach((t,i)=>{
+        const y=68+i*35;
+        d.setFillColor(230,237,244);d.rect(ml,y-4,cw,32,"F");
+        d.setFont("helvetica","bold");d.setFontSize(22);setC(...GOLD);d.text("10",ml+5,y+12);
+        d.setFont("helvetica","bold");d.setFontSize(11);setC(51,51,51);d.text(t.t,ml+22,y+3);
+        d.setFont("helvetica","italic");d.setFontSize(8);setC(...TEAL);d.text(t.dom,pw-mr,y+3,{align:"right"});
+        d.setFont("helvetica","normal");d.setFontSize(8.5);setC(80,80,80);d.text(t.desc,ml+22,y+11,{maxWidth:cw-30,lineHeightFactor:1.5});
+      });
+      foot(7);
+
+// ===== P8: SUPERPOWERS & KRYPTONITE =====
+      d.addPage();
+      hdr("04","SUPERPOWERS & KRYPTONITE",25);
+// Stat boxes
+      const statBoxes=[{v:"90%",sub:"Giftedness dominant\ndomain"},{v:"97%",sub:"Overlap peak\nconvergence"},{v:"66%",sub:"ADHD working\nprofile"},{v:"16\u00D7",sub:"Traits at 10\n/ 10"}];
+      d.setFillColor(...TEAL);d.rect(ml,50,cw,2,"F");
+      statBoxes.forEach((s,i)=>{
+        const bx=ml+i*(cw/4);
+        d.setFont("helvetica","normal");d.setFontSize(24);setC(...[GOLD,TEAL,PURPLE,OLIVE][i]);d.text(s.v,bx+cw/8,72,{align:"center"});
+        d.setFont("helvetica","normal");d.setFontSize(7.5);setC(100,100,100);d.text(s.sub,bx+cw/8,82,{align:"center"});
+      });
+// Two columns
+      const spItems=[["Systems Vision","You build frameworks where others see isolated elements. This is not a skill \u2014 it is the default mode of your cognition."],["Prediction","You anticipate problems, opportunities, and cascade effects before they materialise."],["Hyperfocus","When a subject engages your full interest, your capacity for sustained, deep work exceeds almost anyone around you."],["Cross-Domain Synthesis","You combine psychology, business, spirituality, and technology into products that others cannot replicate."],["Emotional Depth","You create content and connections that reach people at a level others cannot access."]];
+      const krItems=[["Working Memory","The gap between your visionary thinking and your executive function creates friction in implementation."],["Time Perception","Deadlines and duration estimates exist in a different register for your brain."],["Complexity Hunger","Simple operational tasks create genuine cognitive pain. The absence of sufficient complexity actively impairs function."],["Mode Switching","Moving from deep creative work to relational or operational contexts requires significant energy."],["Burnout Risk","Emotional overexcitability at 10/10 combined with perfectionism and hyperfocus creates a profile that can run very hot."]];
+      bold("SUPERPOWERS",ml,100,10);bold("KRYPTONITE",pw/2+5,100,10);
+      const drawSK=(items,x,startY)=>{
+        items.forEach((it,i)=>{
+          const y=startY+i*30;
+          d.setFillColor(245,247,250);d.rect(x,y-2,cw/2-8,27,"F");
+          d.setFont("helvetica","bold");d.setFontSize(10);setC(...TEAL);d.text(it[0],x+3,y+4);
+          d.setFont("helvetica","normal");d.setFontSize(8);setC(80,80,80);d.text(it[1],x+3,y+11,{maxWidth:cw/2-14,lineHeightFactor:1.4});
+        });
+      };
+      drawSK(spItems,ml,108);drawSK(krItems,pw/2+5,108);
+      foot(8);
+
+// ===== P9: DEEP DIVE =====
+      d.addPage();
+      hdr("05","DEEP DIVE \u2014 WHAT THIS COMBINATION MEANS",25);
+// Section 1
+      d.setFillColor(...TEAL);d.rect(ml,58,3,14,"F");
+      tealBold("Systems Architect",ml+8,68,13);
+      body(L+" "+L,ml,80,cw);
+// Section 2
+      d.setFillColor(...GOLD);d.rect(ml,148,3,14,"F");
+      tealBold("The ADHD + Giftedness Paradox",ml+8,158,13);
+      body(L+" "+L,ml,170,cw);
+      foot(9);
+
+// ===== P10: DEEP DIVE cont =====
+      d.addPage();
+      d.setFillColor(255,100,100);d.rect(ml,30,3,14,"F");
+      tealBold("Cognitive & Emotion Style",ml+8,40,13);
+      d.setDrawColor(...TEAL);d.setLineWidth(.3);d.line(ml+8,44,pw-mr,44);
+      body(L+" "+L,ml,52,cw);
+      d.setFillColor(255,100,100);d.rect(ml,118,3,14,"F");
+      tealBold("Relational Patterns",ml+8,128,13);
+      d.setDrawColor(...TEAL);d.line(ml+8,132,pw-mr,132);
+      body(L+" "+L,ml,140,cw);
+      foot(10);
+
+// ===== P11: RECOMMENDATIONS =====
+      d.addPage();
+      hdr("06","RECOMMENDATIONS \u2014 WHAT TO DO WITH THIS",25);
+      body(L.substring(0,250),ml,52,cw);
+// Rec 1
+      tealBold("1. Build an External Operational Brain",ml,78,11);
+      body(LM,ml,86,cw);
+      d.setFont("helvetica","bold");d.setFontSize(8.5);setC(...TEAL);d.text("Why this\nmatters",ml,104);
+      d.setFont("helvetica","normal");d.setFontSize(8.5);setC(80,80,80);d.text(LS,ml+25,104,{maxWidth:cw-25,lineHeightFactor:1.4});
+      d.setFont("helvetica","bold");d.setFontSize(8.5);setC(...TEAL);d.text("What to\ndo",ml,124);
+      d.setFont("helvetica","normal");setC(80,80,80);d.text(L3.substring(0,180),ml+25,124,{maxWidth:cw-25,lineHeightFactor:1.4});
+// Rec 2
+      tealBold("2. Architect, Not Executor",ml,152,11);
+      body(L4,ml,160,cw);
+      d.setFont("helvetica","bold");d.setFontSize(8.5);setC(...TEAL);d.text("Why this\nmatters",ml,182);
+      d.setFont("helvetica","normal");setC(80,80,80);d.text(LS,ml+25,182,{maxWidth:cw-25,lineHeightFactor:1.4});
+      d.setFont("helvetica","bold");d.setFontSize(8.5);setC(...TEAL);d.text("What to\ndo",ml,202);
+      d.setFont("helvetica","normal");setC(80,80,80);d.text(L2.substring(0,180),ml+25,202,{maxWidth:cw-25,lineHeightFactor:1.4});
+      foot(11);
+
+      d.save("NeuroProfile_Report.pdf");
+    }catch(e){console.error(e);alert("Error: "+e.message)}
+    btn.disabled=false;btn.textContent="Download NeuroProfile Report";
+  }
+</script>
+</body>
+</html>

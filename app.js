@@ -145,9 +145,9 @@ function scoreDesc(cat,val){
 
 // ── RADAR SVG ──
 function radar(sc){
-    const W=960,H=840;
-    const CX=W/2,CY=400;
-    const R=250;
+    const W=700,H=700;
+    const CX=W/2,CY=350;
+    const R=220;
     const sqH=R*1.08;
     const SL=CX-sqH,ST=CY-sqH,SW=sqH*2;
     const SR=SL+SW,SB=ST+SW;
@@ -179,27 +179,27 @@ function radar(sc){
     const radarPts=radarScores.map((val,i)=>pol(angles[i],R*(val/10)));
     const radarPath=radarPts.map((p,i)=>`${i===0?"M":"L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ")+"Z";
 
-    // Outer sub-labels — generous offset, wider viewBox so nothing clips
-    const oD=60;
+    // Outer sub-labels
+    const oD=50;
     const outer=[
         {label:"SYSTEMS",    cx:CX,       cy:ST-oD},
-        {label:"PREDICTION", cx:SR+oD,    cy:ST-oD+20},
-        {label:"INTENSITY",  cx:SR+oD+6,  cy:CY},
-        {label:"CURIOSITY",  cx:SR+oD,    cy:SB+oD-20},
-        {label:"NOVELTY",    cx:CX,       cy:SB+oD+6},
-        {label:"SPEED",      cx:SL-oD,    cy:SB+oD-20},
-        {label:"PATTERNS",   cx:SL-oD-6,  cy:CY},
-        {label:"FOCUS",      cx:SL-oD,    cy:ST-oD+20},
+        {label:"PREDICTION", cx:SR+oD-4,  cy:ST-oD+16},
+        {label:"INTENSITY",  cx:SR+oD,    cy:CY},
+        {label:"CURIOSITY",  cx:SR+oD-4,  cy:SB+oD-16},
+        {label:"NOVELTY",    cx:CX,       cy:SB+oD+4},
+        {label:"SPEED",      cx:SL-oD+4,  cy:SB+oD-16},
+        {label:"PATTERNS",   cx:SL-oD,    cy:CY},
+        {label:"FOCUS",      cx:SL-oD+4,  cy:ST-oD+16},
     ];
     const labelPos=[
-        {dy:-24,dx:0,anchor:"middle"},
-        {dy:-22,dx:0,anchor:"middle"},
-        {dy:0,dx:24,anchor:"start"},
+        {dy:-20,dx:0,anchor:"middle"},
+        {dy:-18,dx:0,anchor:"middle"},
+        {dy:0,dx:20,anchor:"start"},
+        {dy:18,dx:0,anchor:"middle"},
         {dy:22,dx:0,anchor:"middle"},
-        {dy:26,dx:0,anchor:"middle"},
-        {dy:22,dx:0,anchor:"middle"},
-        {dy:0,dx:-24,anchor:"end"},
-        {dy:-22,dx:0,anchor:"middle"},
+        {dy:18,dx:0,anchor:"middle"},
+        {dy:0,dx:-20,anchor:"end"},
+        {dy:-18,dx:0,anchor:"middle"},
     ];
 
     const svg=hs("svg",{viewBox:`0 0 ${W} ${H}`,class:"radar-svg"});
@@ -230,7 +230,7 @@ function radar(sc){
     svg.append(hs("path",{d:radarPath,fill:BLUE_F,stroke:BLUE_S,"stroke-width":"2.5","stroke-linejoin":"round"}));
 
     // Domain labels inside — all same size, equal distance from edge (~82%)
-    const dFS="16",dFW="800",dLS="5";
+    const dFS="13",dFW="700",dLS="4";
     const forceFill=`fill:${TXT} !important`;
     // GIFTEDNESS top
     const gt2=document.createElementNS("http://www.w3.org/2000/svg","text");
@@ -269,7 +269,7 @@ function radar(sc){
         const t=document.createElementNS("http://www.w3.org/2000/svg","text");
         t.setAttribute("x",d.cx+lp.dx);t.setAttribute("y",d.cy+lp.dy);
         t.setAttribute("text-anchor",lp.anchor);t.setAttribute("dominant-baseline","central");
-        t.setAttribute("font-size","14");t.setAttribute("font-weight","700");t.setAttribute("letter-spacing","1.5");
+        t.setAttribute("font-size","12");t.setAttribute("font-weight","700");t.setAttribute("letter-spacing","1.2");
         t.style.cssText=forceFill;t.textContent=d.label;svg.append(t);
     });
 
@@ -291,7 +291,7 @@ function toggleTheme(){
     render();
 }
 
-// ── PDF — clean professional layout ──
+// ── PDF — NeuroProfile Report matching template ──
 async function downloadPDF(){
     const status=$("#dl-status");
     if(status)status.textContent="Generating PDF...";
@@ -309,130 +309,197 @@ async function downloadPDF(){
         const{jsPDF}=window.jspdf;
         const pdf=new jsPDF({unit:"mm",format:"a4"});
 
-        // Layout constants
-        const W=210, H=297, ML=24, MR=24, MT=24, MB=20;
-        const pw=W-ML-MR; // 162mm content width
-        let y=0;
+        const W=210,H=297,ML=24,MR=24,MT=28,MB=24;
+        const pw=W-ML-MR;
+        let y=0,pageNum=0;
 
         // Colors
         const hex=c=>{if(c.startsWith("#"))return[parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)];const m=c.match(/\d+/g);return m?m.map(Number):[0,0,0]};
-        const BG=[252,250,247], DK=[30,30,30], TX=[65,60,55], TX2=[115,110,100], TX3=[155,148,138], WHITE=[255,255,255];
+        const COVER_BG=[14,15,22];
+        const WHITE=[255,255,255];
+        const DK=[30,30,30];
+        const TX=[55,55,55];
+        const TX2=[100,100,100];
+        const TX3=[140,140,140];
+        const TEAL=hex(COL.giftedness.hex);
+        const GOLD=hex(COL.autism.hex);
+        const PURPLE=hex(COL.adhd.hex);
+        const SAGE=hex(COL.overlap.hex);
+        const BG_LIGHT=[255,255,255];
+        const HEADER_BG=[235,240,248];
+        const LINE_COL=[200,205,212];
 
-        // Safe text — replace special chars
-        function safe(t){return t.replace(/[≠]/g,"!=").replace(/[—]/g," - ").replace(/['']/g,"'").replace(/[""]/g,'"');}
+        function safe(t){return t.replace(/[≠]/g,"!=").replace(/[—–]/g," - ").replace(/['']/g,"'").replace(/[""]/g,'"');}
 
-        // Page background + header
-        function pageBg(){pdf.setFillColor(...BG);pdf.rect(0,0,W,H,"F");}
-        function phdr(){
+        // ── Footer ──
+        function footer(num){
+            pdf.setDrawColor(...LINE_COL);pdf.setLineWidth(0.3);pdf.line(ML,H-16,W-MR,H-16);
             pdf.setFontSize(6);pdf.setFont("helvetica","normal");pdf.setTextColor(...TX3);
-            const htext=`NeuroProfile  ·  ${(S.name||"Profile").toUpperCase()}  ·  ${new Date().toLocaleDateString("en-US",{month:"long",year:"numeric"}).toUpperCase()}  ·  Not a clinical diagnosis`;
-            pdf.text(htext,W/2,9,{align:"center"});
-            pdf.setDrawColor(230,225,218);pdf.setLineWidth(0.3);pdf.line(ML,12,W-MR,12);
+            pdf.text("NeuroProfile ® | Copyright © 2026 Rita Anstey. All rights reserved.",ML,H-11);
+            if(num>0){
+                pdf.setFontSize(7);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
+                pdf.text(String(num).padStart(2,"0"),W-MR,H-11,{align:"right"});
+            }
         }
-        function newPage(){pdf.addPage();pageBg();y=MT;phdr();}
-        function np(need){if(y+need>H-MB){newPage();}}
-        pageBg();phdr();
 
-        // Text helpers with proper width calc
+        // Section header bar (teal left border + grey bg)
+        function sectionHeader(text){
+            pdf.setFillColor(...HEADER_BG);pdf.rect(ML,y,pw,14,"F");
+            pdf.setFillColor(...TEAL);pdf.rect(ML,y,3,14,"F");
+            pdf.setFontSize(11);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
+            pdf.text(text,ML+10,y+9);
+            y+=20;
+        }
+
+        function newPage(){pdf.addPage();pageNum++;y=MT;pdf.setFillColor(...BG_LIGHT);pdf.rect(0,0,W,H,"F");}
+        function np(need){if(y+need>H-MB){newPage();}}
+
         function txt(text,x,maxW,sz,style,col,lh){
             const t=safe(text);
             pdf.setFontSize(sz);pdf.setFont("helvetica",style);pdf.setTextColor(...col);
             const lines=pdf.splitTextToSize(t,maxW);
             for(let i=0;i<lines.length;i++){np(lh+1);pdf.text(lines[i],x,y);y+=lh;}
         }
-        function label(text,col){
-            pdf.setFontSize(7.5);pdf.setFont("helvetica","bold");pdf.setTextColor(...col);
-            pdf.text(text.toUpperCase(),ML,y);y+=8;
-        }
-        function heading(text,sz){
-            np(sz/2+4);pdf.setFontSize(sz);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
-            pdf.text(safe(text),ML,y);y+=sz*0.45+3;
-        }
         function gap(mm){y+=mm;}
 
-        // ═══ PAGE 1: Title + Diagnosis + Scores ═══
-        y=28;
-        pdf.setFontSize(24);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
-        pdf.text("NeuroProfile",W/2,y,{align:"center"});y+=8;
-        pdf.setFontSize(10);pdf.setFont("helvetica","normal");pdf.setTextColor(...hex(dc.hex));
-        pdf.text(safe((S.name||"Your")+" - Mind Map"),W/2,y,{align:"center"});y+=5;
-        pdf.setFontSize(7.5);pdf.setFont("helvetica","normal");pdf.setTextColor(...TX3);
-        pdf.text("Analysis of Autism, ADHD, Giftedness and Overlap traits",W/2,y,{align:"center"});y+=14;
+        // ════════════════════════════════════════
+        // PAGE 1: COVER (dark background)
+        // ════════════════════════════════════════
+        pageNum=1;
+        pdf.setFillColor(...COVER_BG);pdf.rect(0,0,W,H,"F");
 
-        // Diagnosis card
-        const dcCol=hex(dc.hex);
-        pdf.setFillColor(...dcCol);pdf.rect(ML,y,2,28,"F");
-        const dx=ML+8;
-        pdf.setFontSize(7.5);pdf.setFont("helvetica","bold");pdf.setTextColor(...dcCol);
-        pdf.text("PROFILE DIAGNOSIS",dx,y+4);
-        pdf.setFontSize(15);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
-        pdf.text(safe(dg.t),dx,y+12);
-        pdf.setFontSize(9);pdf.setFont("helvetica","bold");pdf.setTextColor(...dcCol);
-        pdf.text(safe(dg.s),dx,y+18);
-        y+=24;
-        txt(dg.d,dx,pw-10,8.5,"normal",TX,4.2);gap(12);
+        // NEUROPROFILE header
+        y=55;
+        pdf.setFontSize(11);pdf.setFont("helvetica","bold");pdf.setTextColor(...TEAL);
+        pdf.text("NEUROPROFILE",W/2,y,{align:"center",charSpace:2});y+=50;
 
-        // Score bars with descriptions
-        CATS.forEach(c=>{
-            np(28);
-            const col=hex(COL[c].hex);
-            const colD=hex(COL[c].hexD);
-            // Label + score on same line
-            pdf.setFontSize(10);pdf.setFont("helvetica","bold");pdf.setTextColor(...col);
-            pdf.text(c.toUpperCase(),ML,y);
-            pdf.setFontSize(16);pdf.setFont("helvetica","bold");pdf.setTextColor(...col);
-            pdf.text(sc[c]+" / 100",ML+pw,y,{align:"right"});
-            y+=4;
-            // Bar
-            pdf.setFillColor(232,228,222);pdf.rect(ML,y,pw,3,"F");
-            if(sc[c]>0){pdf.setFillColor(...col);pdf.rect(ML,y,pw*(sc[c]/100),3,"F");}
-            y+=6;
-            // Description
-            const desc=scoreDesc(c,sc[c]);
-            if(desc){
-                pdf.setFontSize(8);pdf.setFont("helvetica","normal");pdf.setTextColor(...TX2);
-                const dLines=pdf.splitTextToSize(safe(desc),pw);
-                dLines.forEach(l=>{pdf.text(l,ML,y);y+=3.8;});
-            }
-            y+=6;
+        // Main title
+        pdf.setFontSize(38);pdf.setFont("helvetica","bold");pdf.setTextColor(...WHITE);
+        pdf.text("Neurodiversity",W/2,y,{align:"center"});y+=18;
+        pdf.text("Profile Report",W/2,y,{align:"center"});y+=30;
+
+        // 4 colored dots
+        const dotColors=[GOLD,TEAL,PURPLE,SAGE];
+        const dotX=W/2-45;
+        dotColors.forEach((c,i)=>{
+            pdf.setFillColor(...c);pdf.circle(dotX+i*30,y,7,"F");
         });
+        y+=50;
 
-        // ═══ RADAR ═══
-        np(120);y+=4;
-        label("RADAR PROFILE",TX3);gap(2);
+        // Date
+        const dateStr=new Date().toLocaleDateString("en-GB",{month:"long",year:"numeric"});
+        pdf.setFontSize(14);pdf.setFont("helvetica","bold");pdf.setTextColor(...WHITE);
+        pdf.text(dateStr,W/2,y,{align:"center"});y+=12;
 
-        // Layout constants
-        const rSz=70; // octagon radius
-        const rcx=W/2, rcy=y+rSz+10;
-        const sqHalf=rSz*1.08; // square slightly bigger than octagon
-        const sqL=rcx-sqHalf, sqT=rcy-sqHalf, sqW=sqHalf*2;
+        // Subtitle
+        pdf.setFontSize(10);pdf.setFont("helvetica","normal");pdf.setTextColor(...TX3);
+        pdf.text("Giftedness · Overlap · ADHD · Autism",W/2,y,{align:"center"});y+=8;
+        pdf.text("Assessment System for Neurodivergent Profiles",W/2,y,{align:"center"});
+
+        footer(0);
+
+        // ════════════════════════════════════════
+        // PAGE 2: CONTENTS
+        // ════════════════════════════════════════
+        newPage();
+        sectionHeader("CONTENTS");
+        gap(6);
+
+        const tocItems=[
+            {n:"01",t:"Profile Diagnosis",d:"Your neurodiversity map at a glance"},
+            {n:"02",t:"The Four Domains",d:"Scores visualised — cards, radar & bars"},
+            {n:"03",t:"Your Tens",d:"Top traits scored at maximum intensity"},
+            {n:"04",t:"Superpowers & Kryptonite",d:"Your formula: strengths and challenges"},
+            {n:"05",t:"Deep Dive",d:"What this combination means for you"},
+            {n:"06",t:"Recommendations",d:"What to do with this profile"},
+        ];
+        tocItems.forEach(item=>{
+            pdf.setFontSize(22);pdf.setFont("helvetica","bold");pdf.setTextColor(...TEAL);
+            pdf.text(item.n,ML+4,y+2);
+            pdf.setFontSize(13);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
+            pdf.text(item.t,ML+30,y-2);
+            pdf.setFontSize(9);pdf.setFont("helvetica","normal");pdf.setTextColor(...TX2);
+            pdf.text(item.d,ML+30,y+5);
+            y+=8;
+            pdf.setDrawColor(...LINE_COL);pdf.setLineWidth(0.2);pdf.line(ML+30,y,W-MR,y);
+            y+=16;
+        });
+        footer(pageNum);
+
+        // ════════════════════════════════════════
+        // PAGE 3: PROFILE DIAGNOSIS
+        // ════════════════════════════════════════
+        newPage();
+        sectionHeader("01 PROFILE DIAGNOSIS");
+
+        // Diagnosis title
+        pdf.setFontSize(22);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
+        pdf.text(safe(dg.t),ML,y);y+=10;
+        // Subtitle
+        pdf.setFontSize(10);pdf.setFont("helvetica","bolditalic");pdf.setTextColor(...TEAL);
+        pdf.text(safe(dg.s),ML,y);y+=10;
+        // Description (full width)
+        txt(dg.d,ML,pw,9,"normal",TX,4.5);gap(10);
+
+        // Two column lorem-style extended description
+        const colW2=(pw-10)/2;
+        const diagExtra=an.length>0?safe(an[0].d):"";
+        if(diagExtra){
+            const diagSentences=diagExtra.split(/(?<=\.)\s+/);
+            const diagMid=Math.ceil(diagSentences.length/2);
+            const leftText=diagSentences.slice(0,diagMid).join(" ");
+            const rightText=diagSentences.slice(diagMid).join(" ");
+            const leftLines=pdf.splitTextToSize(leftText,colW2);
+            const rightLines=pdf.splitTextToSize(rightText,colW2);
+            pdf.setFontSize(8.5);pdf.setFont("helvetica","normal");pdf.setTextColor(...TX);
+            const startY=y;
+            leftLines.forEach(l=>{np(4.2);pdf.text(l,ML,y);y+=4.2;});
+            const leftEnd=y;
+            y=startY;
+            rightLines.forEach(l=>{np(4.2);pdf.text(l,ML+colW2+10,y);y+=4.2;});
+            y=Math.max(leftEnd,y);
+            gap(8);
+        }
+
+        // Bottom paragraph
+        if(an.length>1){
+            txt(an[1].d,ML,pw,9,"normal",TX,4.5);
+        }
+        footer(pageNum);
+
+        // ════════════════════════════════════════
+        // PAGE 4: RADAR VIEW
+        // ════════════════════════════════════════
+        newPage();
+        sectionHeader("02 THE FOUR DOMAINS — RADAR VIEW");
+        gap(4);
+
+        const rSz=58;
+        const rcx=W/2,rcy=y+rSz+14;
+        const sqHalf=rSz*1.08;
+        const sqL=rcx-sqHalf,sqT=rcy-sqHalf,sqW2r=sqHalf*2;
 
         const pol=(aDeg,r)=>{const rd=((aDeg-90)*Math.PI)/180;return{x:rcx+r*Math.cos(rd),y:rcy+r*Math.sin(rd)};};
         const angles=[0,45,90,135,180,225,270,315];
-
-        // 8 sub-scores
         const vv=(cat,i)=>S.ans[cat]?.[i]??5;
         const bld=(cat,qi)=>Math.min(10,Math.max(0,Math.round(sc[cat]*0.06+vv(cat,qi)*0.4)));
         const subSc=[bld("giftedness",0),bld("giftedness",9),bld("overlap",1),bld("overlap",6),bld("adhd",1),bld("adhd",4),bld("autism",3),bld("autism",1)];
 
-        // Outer label positions
-        const outerOff=24;
+        const outerOff=14;
         const outerPos=[
-            {lbl:"SYSTEMS",   x:rcx,          y:rcy-sqHalf-outerOff,al:"center"},
-            {lbl:"PREDICTION",x:rcx+sqHalf+outerOff-4,y:rcy-sqHalf-outerOff+8,al:"left"},
-            {lbl:"INTENSITY", x:rcx+sqHalf+outerOff,  y:rcy,al:"left"},
-            {lbl:"CURIOSITY", x:rcx+sqHalf+outerOff-4,y:rcy+sqHalf+outerOff-8,al:"left"},
-            {lbl:"NOVELTY",   x:rcx,          y:rcy+sqHalf+outerOff,al:"center"},
-            {lbl:"SPEED",     x:rcx-sqHalf-outerOff+4,y:rcy+sqHalf+outerOff-8,al:"right"},
-            {lbl:"PATTERNS",  x:rcx-sqHalf-outerOff,  y:rcy,al:"right"},
-            {lbl:"FOCUS",     x:rcx-sqHalf-outerOff+4,y:rcy-sqHalf-outerOff+8,al:"right"},
+            {lbl:"SYSTEMS",   x:rcx,y:rcy-sqHalf-outerOff,al:"center"},
+            {lbl:"PREDICTION",x:rcx+sqHalf+outerOff,y:rcy-sqHalf-outerOff+6,al:"center"},
+            {lbl:"INTENSITY", x:rcx+sqHalf+outerOff+4,y:rcy,al:"center"},
+            {lbl:"CURIOSITY", x:rcx+sqHalf+outerOff,y:rcy+sqHalf+outerOff-6,al:"center"},
+            {lbl:"NOVELTY",   x:rcx,y:rcy+sqHalf+outerOff,al:"center"},
+            {lbl:"SPEED",     x:rcx-sqHalf-outerOff,y:rcy+sqHalf+outerOff-6,al:"center"},
+            {lbl:"PATTERNS",  x:rcx-sqHalf-outerOff-4,y:rcy,al:"center"},
+            {lbl:"FOCUS",     x:rcx-sqHalf-outerOff,y:rcy-sqHalf-outerOff+6,al:"center"},
         ];
-        const axColors=[COL.giftedness,COL.giftedness,COL.overlap,COL.overlap,COL.adhd,COL.adhd,COL.autism,COL.autism];
 
-        // Dashed lines from center to outer labels
+        // Dashed lines
         pdf.setDrawColor(180,182,186);pdf.setLineWidth(0.2);
         outerPos.forEach(o=>{
-            // Draw dashed line manually (jsPDF doesn't support dasharray natively for lines)
             const dx=o.x-rcx,dy2=o.y-rcy;const len=Math.sqrt(dx*dx+dy2*dy2);
             const steps=Math.floor(len/1.5);
             for(let s=0;s<steps;s+=2){
@@ -441,184 +508,340 @@ async function downloadPDF(){
             }
         });
 
-        // Square border
-        pdf.setDrawColor(154,157,161);pdf.setLineWidth(0.4);
-        pdf.rect(sqL,sqT,sqW,sqW);
+        // Square
+        pdf.setDrawColor(154,157,161);pdf.setLineWidth(0.4);pdf.rect(sqL,sqT,sqW2r,sqW2r);
 
-        // 10 octagonal grid rings
+        // Grid rings
         for(let lv=1;lv<=10;lv++){
             const isDk=lv===5||lv===10;
-            pdf.setDrawColor(isDk?154:180,isDk?157:182,isDk?161:186);
+            pdf.setDrawColor(isDk?154:200,isDk?157:203,isDk?161:208);
             pdf.setLineWidth(isDk?0.3:0.12);
             const pts=angles.map(a=>pol(a,rSz*(lv/10)));
-            for(let i=0;i<8;i++){
-                const p1=pts[i],p2=pts[(i+1)%8];
-                pdf.line(p1.x,p1.y,p2.x,p2.y);
-            }
+            for(let i=0;i<8;i++){pdf.line(pts[i].x,pts[i].y,pts[(i+1)%8].x,pts[(i+1)%8].y);}
         }
 
-        // Tick dots on axes
+        // Tick dots
         pdf.setFillColor(154,157,161);
-        angles.forEach(a=>{
-            for(let lv=1;lv<=10;lv++){
-                const p=pol(a,rSz*(lv/10));
-                pdf.circle(p.x,p.y,0.4,"F");
-            }
-        });
+        angles.forEach(a=>{for(let lv=1;lv<=10;lv++){const p=pol(a,rSz*(lv/10));pdf.circle(p.x,p.y,0.4,"F");}});
 
         // Data shape
         const dataPts=subSc.map((val,i)=>pol(angles[i],rSz*(val/10)));
-        // Fill (very subtle)
         pdf.setFillColor(43,94,167);
-        try{pdf.saveGraphicsState();pdf.setGState(new pdf.GState({opacity:0.04}));
-            // Draw filled polygon as triangles from center
-            for(let i=0;i<8;i++){
-                const p1=dataPts[i],p2=dataPts[(i+1)%8];
-                pdf.triangle(rcx,rcy,p1.x,p1.y,p2.x,p2.y,"F");
-            }
+        try{pdf.saveGraphicsState();pdf.setGState(new pdf.GState({opacity:0.08}));
+            for(let i=0;i<8;i++){const p1=dataPts[i],p2=dataPts[(i+1)%8];pdf.triangle(rcx,rcy,p1.x,p1.y,p2.x,p2.y,"F");}
             pdf.restoreGraphicsState();}catch(e){}
-        // Stroke
         pdf.setDrawColor(43,94,167);pdf.setLineWidth(0.6);
-        for(let i=0;i<8;i++){
-            const p1=dataPts[i],p2=dataPts[(i+1)%8];
-            pdf.line(p1.x,p1.y,p2.x,p2.y);
-        }
+        for(let i=0;i<8;i++){pdf.line(dataPts[i].x,dataPts[i].y,dataPts[(i+1)%8].x,dataPts[(i+1)%8].y);}
 
-        // Domain labels INSIDE grid
-        pdf.setFontSize(7);pdf.setFont("helvetica","normal");pdf.setTextColor(68,68,68);
-        // GIFTEDNESS top
-        pdf.text("GIFTEDNESS",rcx,rcy-rSz*0.5,{align:"center",charSpace:0.8});
-        // ADHD bottom
-        pdf.text("ADHD",rcx,rcy+rSz*0.54,{align:"center",charSpace:0.8});
-        // OVERLAP right — draw vertically
-        const ovX=rcx+rSz*0.48;
-        "OVERLAP".split("").forEach((ch2,ci)=>{
-            pdf.text(ch2,ovX,rcy-12+ci*4,{align:"center"});
-        });
-        // AUTISM left — draw vertically (bottom to top)
-        const auX=rcx-rSz*0.48;
-        "AUTISM".split("").reverse().forEach((ch2,ci)=>{
-            pdf.text(ch2,auX,rcy-10+ci*4,{align:"center"});
-        });
+        // Domain labels inside
+        pdf.setFontSize(7);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
+        pdf.text("G I F T E D N E S S",rcx,rcy-rSz*0.52,{align:"center"});
+        pdf.text("A D H D",rcx,rcy+rSz*0.56,{align:"center"});
+        // OVERLAP right - vertical
+        const ovX=rcx+rSz*0.5;
+        const ovLetters="OVERLAP".split("");
+        ovLetters.forEach((ch2,ci)=>{pdf.text(ch2,ovX,rcy-14+ci*4.5,{align:"center"});});
+        // AUTISM left - vertical (top to bottom, reading upward)
+        const auX=rcx-rSz*0.5;
+        const auLetters="AUTISM".split("");
+        auLetters.forEach((ch2,ci)=>{pdf.text(ch2,auX,rcy+10-ci*4.5,{align:"center"});});
 
-        // Gold dots + outer sub-labels
+        // Gold dots + labels
         outerPos.forEach((o,i)=>{
-            const col=hex(axColors[i].hex);
-            // Gold dot
-            pdf.setFillColor(180,142,78);pdf.circle(o.x,o.y,2.5,"F");
-            // Label
-            pdf.setFontSize(6.5);pdf.setFont("helvetica","bold");pdf.setTextColor(68,68,68);
-            const yOff=o.al==="center"?(o.y<rcy?-5:6):0;
-            const xOff=o.al==="left"?5:o.al==="right"?-5:0;
-            pdf.text(o.lbl,o.x+xOff,o.y+yOff,{align:o.al});
+            pdf.setFillColor(180,142,78);pdf.circle(o.x,o.y,2,"F");
+            pdf.setFontSize(5.5);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
+            // Position label relative to dot based on quadrant
+            const isTop=o.y<rcy-10;const isBot=o.y>rcy+10;
+            const isLeft=o.x<rcx-10;const isRight=o.x>rcx+10;
+            let lx=o.x,ly=o.y;
+            if(isTop&&!isLeft&&!isRight){ly-=4;}
+            else if(isBot&&!isLeft&&!isRight){ly+=5;}
+            else if(isTop&&isRight){lx+=4;ly-=3;}
+            else if(isTop&&isLeft){lx-=4;ly-=3;}
+            else if(isBot&&isRight){lx+=4;ly+=4;}
+            else if(isBot&&isLeft){lx-=4;ly+=4;}
+            else if(isRight){lx+=4;}
+            else if(isLeft){lx-=4;}
+            pdf.text(o.lbl,lx,ly,{align:"center",charSpace:0.5});
         });
+        y=rcy+sqHalf+outerOff+20;
+        footer(pageNum);
 
-        // Score bar at bottom of radar
-        y=rcy+sqHalf+outerOff+16;
-        const barW2=pw*0.85;
-        const barX2=ML+(pw-barW2)/2;
-        const cellW2=barW2/4;
-        pdf.setDrawColor(200,200,200);pdf.setLineWidth(0.25);
-        pdf.setFillColor(250,250,250);pdf.rect(barX2,y-4,barW2,10,"FD");
-        [{k:"giftedness",l:"Giftedness:"},{k:"adhd",l:"ADHD:"},{k:"autism",l:"Autism:"},{k:"overlap",l:"Overlap:"}].forEach((c,i)=>{
-            const cx2=barX2+cellW2*i;
-            if(i>0){pdf.setDrawColor(200,200,200);pdf.line(cx2,y-4,cx2,y+6);}
-            const tx=cx2+cellW2/2;
-            pdf.setFontSize(6.5);pdf.setFont("helvetica","normal");pdf.setTextColor(102,102,102);
-            pdf.text(c.l,tx-3,y+2,{align:"right"});
-            pdf.setFontSize(8);pdf.setFont("helvetica","bold");pdf.setTextColor(59,140,59);
-            pdf.text(sc[c.k]+"%",tx+1,y+2,{align:"left"});
+        // ════════════════════════════════════════
+        // PAGE 5: DOMAIN SCORE CARDS
+        // ════════════════════════════════════════
+        newPage();
+        sectionHeader("02 THE FOUR DOMAINS");
+        pdf.setFontSize(10);pdf.setFont("helvetica","bold");pdf.setTextColor(...TX2);
+        pdf.text("Domain Score Cards",ML,y);y+=12;
+
+        // Score card headers + donut circles
+        const cardW=pw/4;
+        const domData=[
+            {k:"giftedness",ab:"GI",n:"Giftedness",col:GOLD},
+            {k:"overlap",ab:"OV",n:"Overlap",col:SAGE},
+            {k:"adhd",ab:"AD",n:"ADHD",col:PURPLE},
+            {k:"autism",ab:"AU",n:"Autism",col:TEAL},
+        ];
+        // Abbreviated labels
+        domData.forEach((d,i)=>{
+            const cx=ML+cardW*i+cardW/2;
+            pdf.setFontSize(18);pdf.setFont("helvetica","bold");pdf.setTextColor(...d.col);
+            pdf.text(d.ab,cx,y,{align:"center"});
+            pdf.setFontSize(7);pdf.setFont("helvetica","normal");pdf.setTextColor(...TX2);
+            pdf.text(d.n,cx,y+5,{align:"center"});
         });
-        y+=16;
+        y+=14;
 
-        // Tens
+        // Donut charts (simplified as circles with score)
+        domData.forEach((d,i)=>{
+            const cx=ML+cardW*i+cardW/2;
+            const r=14;
+            // Background circle
+            pdf.setDrawColor(220,220,220);pdf.setLineWidth(4);pdf.circle(cx,y,r);
+            // Colored arc (approximate with thick circle proportional to score)
+            pdf.setDrawColor(...d.col);pdf.setLineWidth(4);
+            const pct=sc[d.k]/100;
+            // Draw arc segments
+            const segs=Math.floor(pct*36);
+            for(let s=0;s<segs;s++){
+                const a1=(s*10-90)*Math.PI/180;
+                const a2=((s+1)*10-90)*Math.PI/180;
+                pdf.line(cx+r*Math.cos(a1),y+r*Math.sin(a1),cx+r*Math.cos(a2),y+r*Math.sin(a2));
+            }
+            // Score number + %
+            const scoreStr=String(sc[d.k]);
+            pdf.setFontSize(18);pdf.setFont("helvetica","bold");pdf.setTextColor(...d.col);
+            const sw=pdf.getStringUnitWidth(scoreStr)*18/pdf.internal.scaleFactor;
+            pdf.text(scoreStr,cx-3,y+1,{align:"center"});
+            pdf.setFontSize(7);pdf.setFont("helvetica","normal");pdf.setTextColor(...TX3);
+            pdf.text("%",cx+sw/2+1,y+2);
+        });
+        y+=24;gap(8);
+
+        // Score description
+        txt(scoreDesc("giftedness",sc.giftedness)||"",ML,pw,9,"normal",TX,4.5);gap(8);
+
+        // Score table
+        const domList=[
+            {k:"giftedness",n:"Giftedness",col:GOLD},
+            {k:"overlap",n:"Overlap",col:SAGE},
+            {k:"adhd",n:"ADHD",col:PURPLE},
+            {k:"autism",n:"Autism",col:TEAL},
+        ];
+        domList.forEach(d=>{
+            np(10);
+            pdf.setFontSize(10);pdf.setFont("helvetica","bold");pdf.setTextColor(...d.col);
+            pdf.text(d.n,ML,y);
+            pdf.setFontSize(10);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
+            pdf.text(sc[d.k]+" / 100",ML+40,y);
+            pdf.setFontSize(8.5);pdf.setFont("helvetica","normal");pdf.setTextColor(...TX2);
+            const desc=scoreDesc(d.k,sc[d.k])||"";
+            if(desc){
+                const dl=pdf.splitTextToSize(safe(desc),pw-85);
+                dl.forEach((l,li)=>{pdf.text(l,ML+70,y+li*3.8);});
+            }
+            y+=6;
+            pdf.setDrawColor(...LINE_COL);pdf.setLineWidth(0.15);pdf.line(ML,y,W-MR,y);
+            y+=8;
+        });
+        footer(pageNum);
+
+        // ════════════════════════════════════════
+        // PAGE 6: SCORE DISTRIBUTION (bars)
+        // ════════════════════════════════════════
+        newPage();
+        sectionHeader("02 THE FOUR DOMAINS — SCORE DISTRIBUTION");
+        pdf.setFontSize(10);pdf.setFont("helvetica","bold");pdf.setTextColor(...TX2);
+        pdf.text("Comparative Score Analysis",ML,y);y+=14;
+
+        domList.forEach(d=>{
+            np(18);
+            pdf.setFontSize(11);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
+            pdf.text(d.n,ML,y+4);
+            // Bar background
+            const barX=ML+35,barW=pw-60,barH=8;
+            pdf.setFillColor(220,225,232);pdf.rect(barX,y,barW,barH,"F");
+            // Color fill - gradient effect with two colors
+            const fillW=barW*(sc[d.k]/100);
+            pdf.setFillColor(...d.col);pdf.rect(barX,y,fillW*0.5,barH,"F");
+            pdf.setFillColor(...TEAL);pdf.rect(barX+fillW*0.5,y,fillW*0.5,barH,"F");
+            // Score
+            pdf.setFontSize(12);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
+            pdf.text(sc[d.k]+"%",W-MR,y+6,{align:"right"});
+            y+=20;
+        });
+        gap(8);
+        // Description
+        if(an.length>0){txt(an[0].d,ML,pw,9,"normal",TX,4.5);gap(6);}
+        if(an.length>1){txt(an[1].d,ML,pw,9,"normal",TX,4.5);}
+        footer(pageNum);
+
+        // ════════════════════════════════════════
+        // PAGE 7: YOUR TENS
+        // ════════════════════════════════════════
         if(tn.length){
-            gap(4);label("YOUR TENS",hex(dc.hex));
-            pdf.setFontSize(7.5);pdf.setFont("helvetica","normal");pdf.setTextColor(...TX3);
-            pdf.text("Traits at maximum - 10/10",ML,y);y+=8;
+            newPage();
+            sectionHeader("03 YOUR TENS — TRAITS AT MAXIMUM INTENSITY");
+            pdf.setFontSize(8.5);pdf.setFont("helvetica","normal");pdf.setTextColor(...TX);
+            const introTxt=tn.length===1
+                ?`This trait scored 10/10 in your assessment — the outer edge of your profile where neurodiversity is most concentrated and most powerful.`
+                :`These ${tn.length} traits scored 10/10 in your assessment — the outer edges of your profile where neurodiversity is most concentrated and most powerful. Each is a distinct lens through which you experience the world.`;
+            const introLines=pdf.splitTextToSize(introTxt,pw);
+            introLines.forEach(l=>{pdf.text(l,ML,y);y+=4;});
+            gap(8);
+
             tn.forEach(t=>{
-                np(8);const col=hex(COL[t.c].hex);
-                pdf.setFillColor(...col);pdf.roundedRect(ML,y-4,9,5.5,1,1,"F");
-                pdf.setFontSize(7.5);pdf.setFont("helvetica","bold");pdf.setTextColor(...WHITE);
-                pdf.text("10",ML+4.5,y,{align:"center"});
-                pdf.setFontSize(8.5);pdf.setFont("helvetica","normal");pdf.setTextColor(...DK);
-                pdf.text(safe(t.tr),ML+13,y);
-                pdf.setFontSize(6.5);pdf.setFont("helvetica","bold");pdf.setTextColor(...col);
-                pdf.text(t.c.toUpperCase(),ML+pw,y,{align:"right"});
-                y+=7;
+                np(16);
+                const col=hex(COL[t.c].hex);
+                // Card row
+                pdf.setFillColor(240,243,248);pdf.rect(ML+14,y-3,pw-14,13,"F");
+                pdf.setFillColor(...col);pdf.rect(ML+14,y-3,2,13,"F");
+                // 10 badge
+                pdf.setFontSize(18);pdf.setFont("helvetica","bold");pdf.setTextColor(...GOLD);
+                pdf.text("10",ML+4,y+6);
+                // Trait name
+                pdf.setFontSize(10);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
+                pdf.text(safe(t.tr),ML+20,y+5);
+                // Category
+                pdf.setFontSize(7);pdf.setFont("helvetica","italic");pdf.setTextColor(...col);
+                pdf.text(t.c.charAt(0).toUpperCase()+t.c.slice(1),W-MR-4,y+5,{align:"right"});
+                y+=16;
             });
-            gap(6);
+            footer(pageNum);
         }
 
-        // ═══ DEEP ANALYSIS ═══
-        np(20);label("DEEP ANALYSIS",hex(dc.hex));gap(2);
-        an.forEach(a=>{
-            np(16);
-            pdf.setFontSize(11);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
-            pdf.text(safe(a.t),ML,y);y+=7;
-            txt(a.d,ML,pw,8.5,"normal",TX,4.2);gap(8);
-        });
-
-        // ═══ SUPERPOWERS / KRYPTONITE ═══
+        // ════════════════════════════════════════
+        // SUPERPOWERS & KRYPTONITE
+        // ════════════════════════════════════════
         if(st.length||ch.length){
-            np(24);
+            newPage();
+            sectionHeader("04 SUPERPOWERS & KRYPTONITE");
+
+            // Summary boxes
+            const sumW=pw/4;
+            const sumData=[
+                {v:sc.giftedness+"%",l:"Giftedness dominant\ndomain",c:GOLD},
+                {v:sc.overlap+"%",l:"Overlap peak\nconvergence",c:SAGE},
+                {v:sc.adhd+"%",l:"ADHD working\nprofile",c:PURPLE},
+                {v:tn.length+"×",l:"Traits at 10\n/ 10",c:TEAL},
+            ];
+            // Summary bar bg
+            pdf.setFillColor(...HEADER_BG);pdf.rect(ML,y-4,pw,26,"F");
+            pdf.setFillColor(...TEAL);pdf.rect(ML,y-4,pw,1.5,"F");
+            sumData.forEach((s,i)=>{
+                const cx=ML+sumW*i+sumW/2;
+                pdf.setFontSize(20);pdf.setFont("helvetica","bold");pdf.setTextColor(...s.c);
+                pdf.text(s.v,cx,y+6,{align:"center"});
+                pdf.setFontSize(7);pdf.setFont("helvetica","normal");pdf.setTextColor(...TX2);
+                const sLines=s.l.split("\n");
+                sLines.forEach((sl,si)=>{pdf.text(sl,cx,y+13+si*3.5,{align:"center"});});
+            });
+            y+=30;gap(6);
+
+            // Two column: Superpowers | Kryptonite
             const colW=(pw-8)/2;
-            // Headers
-            pdf.setFontSize(7.5);pdf.setFont("helvetica","bold");
-            pdf.setTextColor(108,132,100);pdf.text("SUPERPOWERS",ML,y);
-            pdf.setTextColor(126,92,156);pdf.text("KRYPTONITE",ML+colW+8,y);
-            y+=3;
-            pdf.setDrawColor(218,214,208);pdf.setLineWidth(0.3);pdf.line(ML,y,ML+pw,y);y+=6;
+            pdf.setFontSize(9);pdf.setFont("helvetica","bold");
+            pdf.setTextColor(...DK);pdf.text("SUPERPOWERS",ML,y);
+            pdf.text("KRYPTONITE",ML+colW+8,y);y+=6;
+            pdf.setDrawColor(...LINE_COL);pdf.setLineWidth(0.2);pdf.line(ML,y,W-MR,y);y+=6;
+
             const maxRows=Math.max(st.length,ch.length);
             for(let i=0;i<maxRows;i++){
-                np(16);const baseY=y;let rowH=0;
+                np(24);const baseY=y;let rowH=0;
                 if(i<st.length){
-                    pdf.setFontSize(8.5);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
+                    pdf.setFontSize(9);pdf.setFont("helvetica","bolditalic");pdf.setTextColor(...DK);
                     pdf.text(safe(st[i].t),ML,baseY);
                     pdf.setFontSize(7.5);pdf.setFont("helvetica","normal");pdf.setTextColor(...TX);
                     const sL=pdf.splitTextToSize(safe(st[i].d),colW-2);
-                    sL.forEach((l,li)=>pdf.text(l,ML,baseY+4+li*3.5));
-                    rowH=Math.max(rowH,4+sL.length*3.5);
+                    sL.forEach((l,li)=>pdf.text(l,ML,baseY+5+li*3.5));
+                    rowH=Math.max(rowH,5+sL.length*3.5);
                 }
                 if(i<ch.length){
                     const cx=ML+colW+8;
-                    pdf.setFontSize(8.5);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
+                    pdf.setFontSize(9);pdf.setFont("helvetica","bolditalic");pdf.setTextColor(...DK);
                     pdf.text(safe(ch[i].t),cx,baseY);
                     pdf.setFontSize(7.5);pdf.setFont("helvetica","normal");pdf.setTextColor(...TX);
                     const cL=pdf.splitTextToSize(safe(ch[i].d),colW-2);
-                    cL.forEach((l,li)=>pdf.text(l,cx,baseY+4+li*3.5));
-                    rowH=Math.max(rowH,4+cL.length*3.5);
+                    cL.forEach((l,li)=>pdf.text(l,cx,baseY+5+li*3.5));
+                    rowH=Math.max(rowH,5+cL.length*3.5);
                 }
-                y=baseY+rowH+4;
+                y=baseY+rowH+5;
+                pdf.setDrawColor(...LINE_COL);pdf.setLineWidth(0.1);pdf.line(ML,y,W-MR,y);y+=4;
             }
-            gap(6);
+            footer(pageNum);
         }
 
-        // ═══ FORMULA ═══
-        np(22);label("YOUR FORMULA",hex(dc.hex));
-        pdf.setFontSize(11);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
-        const fLines=pdf.splitTextToSize(safe(fm.f),pw);
-        fLines.forEach(l=>{np(6);pdf.text(l,ML,y);y+=5.5;});gap(3);
-        pdf.setFontSize(8.5);pdf.setFont("helvetica","italic");pdf.setTextColor(...TX2);
-        const mLines=pdf.splitTextToSize("= "+safe(fm.m),pw);
-        mLines.forEach(l=>{np(5);pdf.text(l,ML,y);y+=4;});gap(10);
+        // ════════════════════════════════════════
+        // DEEP DIVE
+        // ════════════════════════════════════════
+        newPage();
+        sectionHeader("05 DEEP DIVE — WHAT THIS COMBINATION MEANS");
+        gap(4);
 
-        // ═══ RECOMMENDATIONS ═══
-        np(16);label("RECOMMENDATIONS",hex(dc.hex));gap(2);
-        rc.forEach((r,i)=>{
-            np(18);
-            // Title
-            pdf.setFontSize(10);pdf.setFont("helvetica","bold");pdf.setTextColor(...DK);
-            pdf.text(safe(r.t),ML,y);y+=6;
-            // Body
-            txt(r.d,ML,pw,8.5,"normal",TX,4.2);gap(7);
+        an.forEach((a,i)=>{
+            np(30);
+            // Section heading with colored left bar
+            const barCol=i%4===0?TEAL:i%4===1?GOLD:i%4===2?PURPLE:SAGE;
+            pdf.setFillColor(...barCol);pdf.rect(ML,y-1,3,8,"F");
+            pdf.setFontSize(12);pdf.setFont("helvetica","bold");pdf.setTextColor(...TEAL);
+            pdf.text(safe(a.t),ML+8,y+5);
+            y+=5;
+            pdf.setDrawColor(...barCol);pdf.setLineWidth(0.3);pdf.line(ML+8,y+2,W-MR,y+2);
+            y+=8;
+            txt(a.d,ML,pw,9,"normal",TX,4.5);gap(12);
         });
+        footer(pageNum);
 
-        // Footer
-        gap(8);np(8);
-        pdf.setFontSize(6.5);pdf.setFont("helvetica","italic");pdf.setTextColor(...TX3);
-        pdf.text("Not a clinical diagnosis  ·  NeuroProfile  ·  "+new Date().getFullYear(),W/2,y,{align:"center"});
+        // ════════════════════════════════════════
+        // RECOMMENDATIONS
+        // ════════════════════════════════════════
+        newPage();
+        sectionHeader("06 RECOMMENDATIONS — WHAT TO DO WITH THIS");
+        gap(2);
 
+        // Intro paragraph
+        if(rc.length>0){
+            txt("Based on your unique cognitive architecture, these personalised recommendations are designed to help you leverage your neurodivergent strengths while managing your specific challenges.",ML,pw,9,"normal",TX,4.5);
+            gap(8);
+        }
+
+        rc.forEach((r,i)=>{
+            np(30);
+            // Numbered heading
+            pdf.setFontSize(11);pdf.setFont("helvetica","bold");pdf.setTextColor(...TEAL);
+            pdf.text((i+1)+". "+safe(r.t),ML,y);y+=6;
+            // Brief description
+            txt(r.d,ML,pw,8.5,"normal",TX,4.2);
+            gap(4);
+
+            // Split description at first sentence boundary for Why/What sections
+            const halfD=safe(r.d);
+            const sentences=halfD.split(/(?<=\.)\s+/);
+            const midPt=Math.ceil(sentences.length/2);
+            const whyText=sentences.slice(0,midPt).join(" ");
+            const whatText=sentences.slice(midPt).join(" ")||whyText;
+
+            np(20);
+            pdf.setFontSize(8);pdf.setFont("helvetica","bold");pdf.setTextColor(...TEAL);
+            pdf.text("Why this\nmatters",ML,y);
+            pdf.setFontSize(8);pdf.setFont("helvetica","normal");pdf.setTextColor(...TX);
+            const wLines=pdf.splitTextToSize(whyText,pw-35);
+            wLines.slice(0,4).forEach((l,li)=>{pdf.text(l,ML+28,y+li*3.8);});
+            y+=Math.min(wLines.length,4)*3.8+6;
+
+            np(14);
+            pdf.setFontSize(8);pdf.setFont("helvetica","bold");pdf.setTextColor(...TEAL);
+            pdf.text("What to\ndo",ML,y);
+            pdf.setFontSize(8);pdf.setFont("helvetica","normal");pdf.setTextColor(...TX);
+            const aLines=pdf.splitTextToSize(whatText,pw-35);
+            aLines.slice(0,4).forEach((l,li)=>{pdf.text(l,ML+28,y+li*3.8);});
+            y+=Math.min(aLines.length,4)*3.8+4;
+            gap(6);
+        });
+        footer(pageNum);
+
+        // Save
         pdf.save(`NeuroProfile_${S.name||"Report"}_${new Date().toISOString().slice(0,10)}.pdf`);
         if(status)status.textContent="Done!";setTimeout(()=>{if(status)status.textContent=""},3000);
     }catch(e){console.error("PDF error:",e);if(status)status.textContent="Error: "+e.message;}
