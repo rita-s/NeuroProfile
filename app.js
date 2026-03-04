@@ -145,24 +145,23 @@ function scoreDesc(cat,val){
 
 // ── RADAR SVG ──
 function radar(sc){
-    // Compact viewBox — chart fills the space
-    const W=600,H=680;
-    const CX=W/2,CY=280;
-    const R=170; // octagon radius
-    const sqH=R*1.1; // square half-size
+    const W=960,H=940;
+    const CX=W/2,CY=400;
+    const R=250;
+    const sqH=R*1.08;
     const SL=CX-sqH,ST=CY-sqH,SW=sqH*2;
     const SR=SL+SW,SB=ST+SW;
 
     const isDark=S.dark;
     const DOT_COL="#B48E4E";
     const BLUE_S=isDark?"#5B8FD7":"#2B5EA7";
-    const BLUE_F=isDark?"rgba(91,143,215,0.08)":"rgba(43,94,167,0.04)";
-    const DARK=isDark?"#6A6D72":"#9A9DA1";
-    const LIGHT=isDark?"#3A3D42":"#B4B6BA";
-    const TXT=isDark?"#d0d0d4":"#333";
+    const BLUE_F=isDark?"rgba(91,143,215,0.12)":"rgba(43,94,167,0.10)";
+    const DARK=isDark?"#6A6D72":"#b0b4ba";
+    const LIGHT=isDark?"#3A3D42":"#d0d3d8";
+    const TXT=isDark?"#d0d0d4":"#000000";
     const GRN=isDark?"#5CB85C":"#3B8C3B";
-    const BAR_BG=isDark?"#1a1c26":"#fafafa";
-    const BAR_BORDER=isDark?"#444":"#ccc";
+    const BAR_BG="transparent";
+    const BAR_BORDER=isDark?"#444":"#bbb";
     const BAR_TXT=isDark?"#aaa":"#555";
 
     const pol=(a,r)=>{const rd=((a-90)*Math.PI)/180;return[CX+r*Math.cos(rd),CY+r*Math.sin(rd)];};
@@ -180,34 +179,34 @@ function radar(sc){
     const radarPts=radarScores.map((val,i)=>pol(angles[i],R*(val/10)));
     const radarPath=radarPts.map((p,i)=>`${i===0?"M":"L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ")+"Z";
 
-    // Outer labels — tight to square
-    const oD=36; // offset from square edge
+    // Outer sub-labels — generous offset, wider viewBox so nothing clips
+    const oD=60;
     const outer=[
-        {label:"SYSTEMS",   cx:CX,     cy:ST-oD},
-        {label:"PREDICTION",cx:SR+oD-6,cy:ST-oD+12},
-        {label:"INTENSITY", cx:SR+oD,  cy:CY},
-        {label:"CURIOSITY", cx:SR+oD-6,cy:SB+oD-12},
-        {label:"NOVELTY",   cx:CX,     cy:SB+oD+4},
-        {label:"SPEED",     cx:SL-oD+6,cy:SB+oD-12},
-        {label:"PATTERNS",  cx:SL-oD,  cy:CY},
-        {label:"FOCUS",     cx:SL-oD+6,cy:ST-oD+12},
+        {label:"SYSTEMS",    cx:CX,       cy:ST-oD},
+        {label:"PREDICTION", cx:SR+oD,    cy:ST-oD+20},
+        {label:"INTENSITY",  cx:SR+oD+6,  cy:CY},
+        {label:"CURIOSITY",  cx:SR+oD,    cy:SB+oD-20},
+        {label:"NOVELTY",    cx:CX,       cy:SB+oD+6},
+        {label:"SPEED",      cx:SL-oD,    cy:SB+oD-20},
+        {label:"PATTERNS",   cx:SL-oD-6,  cy:CY},
+        {label:"FOCUS",      cx:SL-oD,    cy:ST-oD+20},
     ];
     const labelPos=[
-        {dy:-16,dx:0,anchor:"middle"},
-        {dy:-14,dx:0,anchor:"middle"},
-        {dy:0,dx:14,anchor:"start"},
-        {dy:14,dx:0,anchor:"middle"},
-        {dy:18,dx:0,anchor:"middle"},
-        {dy:14,dx:0,anchor:"middle"},
-        {dy:0,dx:-14,anchor:"end"},
-        {dy:-14,dx:0,anchor:"middle"},
+        {dy:-24,dx:0,anchor:"middle"},
+        {dy:-22,dx:0,anchor:"middle"},
+        {dy:0,dx:24,anchor:"start"},
+        {dy:22,dx:0,anchor:"middle"},
+        {dy:26,dx:0,anchor:"middle"},
+        {dy:22,dx:0,anchor:"middle"},
+        {dy:0,dx:-24,anchor:"end"},
+        {dy:-22,dx:0,anchor:"middle"},
     ];
 
     const svg=hs("svg",{viewBox:`0 0 ${W} ${H}`,class:"radar-svg"});
 
-    // Dashed lines
+    // Dashed lines from center to outer dots
     outer.forEach(d=>{
-        svg.append(hs("line",{x1:CX,y1:CY,x2:d.cx,y2:d.cy,stroke:LIGHT,"stroke-width":"0.8","stroke-dasharray":"4 3"}));
+        svg.append(hs("line",{x1:CX,y1:CY,x2:d.cx,y2:d.cy,stroke:LIGHT,"stroke-width":"0.8","stroke-dasharray":"5 4"}));
     });
 
     // Square
@@ -219,37 +218,37 @@ function radar(sc){
         svg.append(hs("path",{d:octPath(R*(lv/10)),fill:"none",stroke:dk?DARK:LIGHT,"stroke-width":dk?"1":"0.5"}));
     }
 
-    // Tick dots
+    // Tick dots on axes
     angles.forEach(a=>{
         for(let lv=1;lv<=10;lv++){
             const[tx,ty]=pol(a,R*(lv/10));
-            svg.append(hs("circle",{cx:tx.toFixed(1),cy:ty.toFixed(1),r:"1.2",fill:DARK}));
+            svg.append(hs("circle",{cx:tx.toFixed(1),cy:ty.toFixed(1),r:"1.5",fill:DARK}));
         }
     });
 
     // Data shape
-    svg.append(hs("path",{d:radarPath,fill:BLUE_F,stroke:BLUE_S,"stroke-width":"2","stroke-linejoin":"round"}));
+    svg.append(hs("path",{d:radarPath,fill:BLUE_F,stroke:BLUE_S,"stroke-width":"2.5","stroke-linejoin":"round"}));
 
-    // Domain labels inside
-    const dFS="13",dFW="400",dLS="4";
-    const gt2=hs("text",{x:CX,y:CY-R*0.52,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":dLS,fill:TXT});gt2.textContent="GIFTEDNESS";svg.append(gt2);
-    const ab2=hs("text",{x:CX,y:CY+R*0.55,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":dLS,fill:TXT});ab2.textContent="ADHD";svg.append(ab2);
-    const ov2=hs("text",{x:CX+R*0.52,y:CY,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":dLS,fill:TXT,"writing-mode":"vertical-rl",style:"text-orientation:mixed"});ov2.textContent="OVERLAP";svg.append(ov2);
-    const lx3=CX-R*0.52;
-    const au2=hs("text",{x:lx3,y:CY,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":dLS,fill:TXT,"writing-mode":"vertical-rl",transform:`rotate(180,${lx3.toFixed(1)},${CY})`,style:"text-orientation:mixed"});au2.textContent="AUTISM";svg.append(au2);
+    // Domain labels inside — all same size, equal distance from edge (~82%)
+    const dFS="16",dFW="800",dLS="5";
+    const gt2=hs("text",{x:CX,y:CY-R*0.82,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":dLS,fill:TXT});gt2.textContent="GIFTEDNESS";svg.append(gt2);
+    const ab2=hs("text",{x:CX,y:CY+R*0.82,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":dLS,fill:TXT});ab2.textContent="ADHD";svg.append(ab2);
+    const ov2=hs("text",{x:CX+R*0.82,y:CY,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":"4",fill:TXT,"writing-mode":"vertical-rl",style:"text-orientation:mixed"});ov2.textContent="OVERLAP";svg.append(ov2);
+    const lx3=CX-R*0.82;
+    const au2=hs("text",{x:lx3,y:CY,"text-anchor":"middle","dominant-baseline":"central","font-size":dFS,"font-weight":dFW,"letter-spacing":"4",fill:TXT,"writing-mode":"vertical-rl",transform:`rotate(180,${lx3.toFixed(1)},${CY})`,style:"text-orientation:mixed"});au2.textContent="AUTISM";svg.append(au2);
 
-    // Gold dots + labels
+    // Gold dots + outer sub-labels — all black in light mode
     outer.forEach((d,i)=>{
         const lp=labelPos[i];
-        svg.append(hs("circle",{cx:d.cx,cy:d.cy,r:"7",fill:DOT_COL}));
-        const t=hs("text",{x:(d.cx+lp.dx),y:(d.cy+lp.dy),"text-anchor":lp.anchor,"dominant-baseline":"central","font-size":"12","font-weight":"700","letter-spacing":"1",fill:TXT});
+        svg.append(hs("circle",{cx:d.cx,cy:d.cy,r:"9",fill:DOT_COL}));
+        const t=hs("text",{x:(d.cx+lp.dx),y:(d.cy+lp.dy),"text-anchor":lp.anchor,"dominant-baseline":"central","font-size":"14","font-weight":"700","letter-spacing":"1.5",fill:TXT});
         t.textContent=d.label;svg.append(t);
     });
 
-    // Score bar — spans full width
-    const barY=H-40;
-    const barW=W-40;
-    const barX=20;
+    // Score bar — wide, transparent, centered text per cell
+    const barY=H-50;
+    const barW=W*0.86;
+    const barX=(W-barW)/2;
     const cats=[
         {k:"giftedness",l:"Giftedness:"},
         {k:"adhd",l:"ADHD:"},
@@ -257,13 +256,13 @@ function radar(sc){
         {k:"overlap",l:"Overlap:"},
     ];
     const cellW=barW/4;
-    svg.append(hs("rect",{x:barX,y:barY-22,width:barW,height:44,rx:"4",fill:BAR_BG,stroke:BAR_BORDER,"stroke-width":"1"}));
+    svg.append(hs("rect",{x:barX,y:barY-26,width:barW,height:52,rx:"8",fill:BAR_BG,stroke:BAR_BORDER,"stroke-width":"1"}));
     cats.forEach((c,i)=>{
         const cx2=barX+cellW*i;
-        if(i>0)svg.append(hs("line",{x1:cx2,y1:barY-22,x2:cx2,y2:barY+22,stroke:BAR_BORDER,"stroke-width":"0.8"}));
-        const tx=cx2+cellW/2;
-        const lt=hs("text",{x:tx-10,y:barY,"text-anchor":"end","dominant-baseline":"central","font-size":"13",fill:BAR_TXT});lt.textContent=c.l;svg.append(lt);
-        const vt=hs("text",{x:tx+4,y:barY,"text-anchor":"start","dominant-baseline":"central","font-size":"17","font-weight":"700",fill:GRN});vt.textContent=sc[c.k]+"%";svg.append(vt);
+        if(i>0)svg.append(hs("line",{x1:cx2,y1:barY-26,x2:cx2,y2:barY+26,stroke:BAR_BORDER,"stroke-width":"0.8"}));
+        const mid=cx2+cellW/2;
+        const lt=hs("text",{x:mid,y:barY-7,"text-anchor":"middle","dominant-baseline":"central","font-size":"13",fill:BAR_TXT});lt.textContent=c.l;svg.append(lt);
+        const vt=hs("text",{x:mid,y:barY+11,"text-anchor":"middle","dominant-baseline":"central","font-size":"22","font-weight":"700",fill:GRN});vt.textContent=sc[c.k]+"%";svg.append(vt);
     });
 
     return svg;
@@ -718,56 +717,44 @@ function renderQuiz(){
     });
     w.append(steps);
 
-    // Scale legend — like personality.co reference
-    const legend=h("div","scale-legend",[]);
-    legend.append(h("div","scale-legend-title",["Choose how accurately each statement reflects you."]));
-    const scaleRow=h("div","scale-row",[]);
-    const scaleLabels=["Not at\nall","Rarely","Sometimes","Often","Mostly","Half","Moderate","Usually","Very\noften","Almost\nalways","Maximum"];
-    for(let v=0;v<=10;v++){
-        const item=h("div","scale-item",[]);
-        const circle=h("div","scale-circle",[]);
-        // Gradient from red/orange through grey to green/teal
-        const colors=["#e8a0a0","#e8b88a","#d4c4a0","#c0c8a0","#a8c8a0","#bbb","#90c4a8","#80c0a8","#70bca8","#60b8a8","#4eb8a8"];
-        circle.style.borderColor=colors[v];
-        circle.style.background=colors[v]+"25";
-        item.append(circle);
-        item.append(h("span","scale-label",[v.toString()]));
-        scaleRow.append(item);
-    }
-    legend.append(scaleRow);
-    const scaleEnds=h("div","scale-ends",[]);
-    scaleEnds.append(h("span","scale-end-l",["Not at all"]));
-    scaleEnds.append(h("span","scale-end-r",["Maximum"]));
-    legend.append(scaleEnds);
-    w.append(legend);
-
-    // Button colors gradient: warm(0) → neutral(5) → cool(10)
-    const btnColors=["#e8a0a0","#e8b88a","#d4c4a0","#c0c8a0","#a8c8a0","#bbb","#90c4a8","#80c0a8","#70bca8","#60b8a8","#4eb8a8"];
-    const mob5=[{v:0,l:"0"},{v:3,l:"3"},{v:5,l:"5"},{v:7,l:"7"},{v:10,l:"10"}];
+    // Button colors — uniform grey
+    const btnGrey="#93969a";
+    const mob6=[{v:0,l:"0"},{v:1,l:"1"},{v:2,l:"2"},{v:3,l:"3"},{v:4,l:"4"},{v:5,l:"5"}];
     const isMob=window.innerWidth<=768;
-    const btnLabels={0:"Not at all",5:"Neutral",10:"Maximum"};
 
     const qlist=h("div","q-list",[]);
     Q[cat].forEach((qText,qi)=>{
         const cv=S.ans[cat]?.[qi];
         const qcard=h("div","q-item",[]);
         qcard.append(h("div","q-text",[qText]));
-        const btns=h("div","sc-btns"+(isMob?" sc-btns-5":""),[]);
-        const btnSteps=isMob?mob5:Array.from({length:11},(_,i)=>({v:i,l:String(i)}));
+
+        const btnsRow=h("div","sc-btns-row",[]);
+
+        // Left label
+        const leftLbl=h("span","sc-side-label sc-side-left",["Completely disagree"]);
+        btnsRow.append(leftLbl);
+
+        const btns=h("div","sc-btns"+(isMob?" sc-btns-mob":""),[]);
+        const btnSteps=isMob?mob6:Array.from({length:11},(_,i)=>({v:i,l:String(i)}));
         btnSteps.forEach(s=>{
             const b=document.createElement("button");
             b.className="sc-btn"+(cv===s.v?" sel":"");
-            b.style.borderColor=btnColors[s.v];
-            b.style.background=btnColors[s.v]+"28";
+            b.style.borderColor=btnGrey;
+            b.style.color=btnGrey;
             if(cv===s.v){b.style.background=col.m;b.style.borderColor=col.m;b.style.color="#fff";}
             const num=document.createElement("span");num.className="sc-btn-num";num.textContent=s.l;b.append(num);
-            if(btnLabels[s.v]){const sub=document.createElement("span");sub.className="sc-btn-sub";sub.textContent=btnLabels[s.v];b.append(sub);}
-            b.addEventListener("mouseenter",()=>{if(S.ans[cat]?.[qi]!==s.v){b.style.background=btnColors[s.v]+"50";b.style.borderColor=col.m}});
-            b.addEventListener("mouseleave",()=>{if(S.ans[cat]?.[qi]!==s.v){b.style.background=btnColors[s.v]+"28";b.style.borderColor=btnColors[s.v]}});
+            b.addEventListener("mouseenter",()=>{if(S.ans[cat]?.[qi]!==s.v){b.style.background="rgba(147,150,154,0.12)";b.style.borderColor=col.m}});
+            b.addEventListener("mouseleave",()=>{if(S.ans[cat]?.[qi]!==s.v){b.style.background="transparent";b.style.borderColor=btnGrey}});
             b.addEventListener("click",()=>{S.ans[cat][qi]=s.v;render()});
             btns.append(b);
         });
-        qcard.append(btns);
+        btnsRow.append(btns);
+
+        // Right label
+        const rightLbl=h("span","sc-side-label sc-side-right",["Completely agree"]);
+        btnsRow.append(rightLbl);
+
+        qcard.append(btnsRow);
         qlist.append(qcard);
     });
     w.append(qlist);
