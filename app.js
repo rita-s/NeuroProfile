@@ -145,7 +145,7 @@ function scoreDesc(cat,val){
 
 // ── RADAR SVG ──
 function radar(sc){
-    const W=960,H=940;
+    const W=960,H=840;
     const CX=W/2,CY=400;
     const R=250;
     const sqH=R*1.08;
@@ -273,47 +273,22 @@ function radar(sc){
         t.style.cssText=forceFill;t.textContent=d.label;svg.append(t);
     });
 
-    // Score bar — single line: Label Value | Label Value | ...
-    const barY=H-50;
-    const barW=W*0.86;
-    const barX=(W-barW)/2;
-    const cats=[
-        {k:"giftedness",l:"Giftedness:",cl:"rgb(68,140,140)"},
-        {k:"adhd",l:"ADHD:",cl:"rgb(126,92,156)"},
-        {k:"autism",l:"Autism:",cl:"rgb(180,142,78)"},
-        {k:"overlap",l:"Overlap:",cl:"rgb(108,132,100)"},
-    ];
-    const cellW=barW/4;
-    const barH=56;
-    svg.append(hs("rect",{x:barX,y:barY-barH/2,width:barW,height:barH,rx:"10",fill:BAR_BG,stroke:BAR_BORDER,"stroke-width":"1"}));
-    cats.forEach((c,i)=>{
-        const cx2=barX+cellW*i;
-        if(i>0)svg.append(hs("line",{x1:cx2,y1:barY-barH/2,x2:cx2,y2:barY+barH/2,stroke:BAR_BORDER,"stroke-width":"0.8"}));
-        const mid=cx2+cellW/2;
-        // Label (colored, bold)
-        const lt=document.createElementNS("http://www.w3.org/2000/svg","text");
-        lt.setAttribute("x",mid-4);lt.setAttribute("y",barY);
-        lt.setAttribute("text-anchor","end");lt.setAttribute("dominant-baseline","central");
-        lt.setAttribute("font-size","15");lt.setAttribute("font-weight","700");lt.setAttribute("letter-spacing","0.3");
-        lt.setAttribute("class","rl");
-        lt.style.cssText=`fill:${c.cl} !important`;lt.textContent=c.l;svg.append(lt);
-        // Value (black on light, white on dark) — forced with !important
-        const numColor=isDark?"#e8e9f0":"#000000";
-        const vt=document.createElementNS("http://www.w3.org/2000/svg","text");
-        vt.setAttribute("x",mid+2);vt.setAttribute("y",barY);
-        vt.setAttribute("text-anchor","start");vt.setAttribute("dominant-baseline","central");
-        vt.setAttribute("font-size","20");vt.setAttribute("font-weight","900");
-        vt.setAttribute("class","rv");
-        vt.style.cssText=`fill:${numColor} !important`;vt.textContent=sc[c.k]+"%";svg.append(vt);
-    });
+    // Score bar — rendered as HTML below SVG, not inside SVG
+    // (removed from SVG for better mobile scaling)
 
-    return svg;
+    return {svg, scores:sc, cats:[
+            {k:"giftedness",l:"Giftedness:",cl:"rgb(68,140,140)"},
+            {k:"adhd",l:"ADHD:",cl:"rgb(126,92,156)"},
+            {k:"autism",l:"Autism:",cl:"rgb(180,142,78)"},
+            {k:"overlap",l:"Overlap:",cl:"rgb(108,132,100)"},
+        ]};
 }
 
 function toggleTheme(){
     S.dark=!S.dark;
     document.documentElement.setAttribute("data-theme",S.dark?"dark":"light");
     $(".theme-toggle").textContent=S.dark?"☀️":"🌙";
+    render();
 }
 
 // ── PDF — clean professional layout ──
@@ -869,7 +844,20 @@ function renderReport(){
     // Radar
     const cr=h("div","card card-radar",[]);
     cr.append(h("div","card-lbl",["RADAR PROFILE"]));
-    cr.append(radar(sc));w.append(cr);
+    const radarData=radar(sc);
+    cr.append(radarData.svg);
+    // HTML score bar
+    const scoreBar=h("div","radar-scores",[]);
+    radarData.cats.forEach(c=>{
+        const cell=h("div","radar-score-cell",[]);
+        const lbl=h("span","radar-score-lbl",[c.l]);
+        lbl.style.color=c.cl;
+        const val=h("span","radar-score-val",[radarData.scores[c.k]+"%"]);
+        cell.append(lbl,val);
+        scoreBar.append(cell);
+    });
+    cr.append(scoreBar);
+    w.append(cr);
 
     // Tens
     if(tn.length){
